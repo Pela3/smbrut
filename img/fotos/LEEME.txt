@@ -1,0 +1,2 @@
+Opcional: si preferis no usar Google Drive, pone las fotos aca
+(ej: brut.jpg) y en la columna "foto" de la planilla escribi solo el nombre: brut.jpg

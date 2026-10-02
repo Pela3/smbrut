@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SMBRUT · Hamburguesas</title>
+  <meta name="description" content="SMBRUT. Hamburguesas, papas, sandwiches, pizzas y empanadas. Mirá la carta.">
+  <meta name="theme-color" content="#0c0c0c">
+  <link rel="icon" type="image/png" href="img/ratita-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#carta">Ir a la carta</a>
+
+  <header class="hero">
+    <div class="hero__copy">
+      <h1 class="hero__logo">
+        <img src="img/logo-smb.png" width="809" height="549" alt="SMBRUT">
+      </h1>
+      <p class="hero__lead">Hamburguesas brutas.<br><span>Todas con papas.</span></p>
+      <a class="hero__dir" data-hero-dir hidden target="_blank" rel="noopener"><i class="ph-bold ph-map-pin" aria-hidden="true"></i> <span></span></a>
+      <div class="hero__actions">
+        <a class="btn btn--lima" href="#carta">Ver la carta <i class="ph-bold ph-arrow-down" aria-hidden="true"></i></a>
+        <a class="btn btn--ghost" data-whatsapp hidden target="_blank" rel="noopener"><i class="ph-bold ph-whatsapp-logo" aria-hidden="true"></i> Pedir por WhatsApp</a>
+        <a class="btn btn--ghost" data-instagram hidden target="_blank" rel="noopener"><i class="ph-bold ph-instagram-logo" aria-hidden="true"></i> <span data-instagram-handle></span></a>
+      </div>
+    </div>
+    <div class="hero__art" aria-hidden="true">
+      <img class="hero__rata" src="img/ratita.png" width="1198" height="1267" alt="">
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Categorías del menú">
+    <div class="tabs__track" data-tabs>
+      <span class="tabs__pill" data-pill aria-hidden="true"></span>
+    </div>
+  </nav>
+
+  <main id="carta" class="carta" tabindex="-1">
+    <div class="carta__status" data-status role="status">Cargando la carta…</div>
+    <div data-menu></div>
+  </main>
+
+  <footer class="pie">
+    <img class="pie__rata" src="img/ratita.png" width="1198" height="1267" alt="" loading="lazy">
+    <div class="pie__info">
+      <img class="pie__logo" src="img/logo-smb-blanco.png" width="773" height="439" alt="SMBRUT" loading="lazy">
+      <dl class="pie__datos">
+        <div data-direccion hidden>
+          <dt>Dónde</dt>
+          <dd><span data-direccion-texto></span></dd>
+          <a class="btn btn--lima pie__mapa" data-mapa target="_blank" rel="noopener"><i class="ph-bold ph-navigation-arrow" aria-hidden="true"></i> Cómo llegar</a>
+        </div>
+        <div data-horarios hidden><dt>Cuándo</dt><dd></dd></div>
+        <div data-instagram-row hidden><dt>Instagram</dt><dd><a target="_blank" rel="noopener"></a></dd></div>
+      </dl>
+    </div>
+  </footer>
+
+  <dialog class="visor" data-visor aria-label="Foto del plato">
+    <form method="dialog" class="visor__cerrar"><button class="btn btn--ghost" aria-label="Cerrar"><i class="ph-bold ph-x" aria-hidden="true"></i></button></form>
+    <img data-visor-img alt="">
+    <p class="visor__nombre" data-visor-nombre></p>
+  </dialog>
+
+  <script src="js/config.js"></script>
+  <script src="js/menu-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
