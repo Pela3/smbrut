@@ -4,7 +4,7 @@ Página web con la carta de **SMBRUT**: hamburguesas, papas, sandwiches, pizzas 
 
 📍 Calle 17 y 123, Santa Teresita · 📸 [@smbrut_](https://instagram.com/smbrut_)
 
-**Ver la página:** _(acá va el enlace cuando esté publicada)_
+**Ver la página:** (https://pela3.github.io/smbrut/)
 
 ## Qué tiene
 
