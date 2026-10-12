@@ -13,7 +13,8 @@ Página web con la carta de **SMBRUT**: hamburguesas, papas, sandwiches, pizzas 
 - **Carrusel** con fotos de las hamburguesas arriba de la carta (las fotos se cambian en `js/config.js`, en `vitrina`).
 - **Pedir delivery:** las hamburguesas se pueden armar (sacar ingredientes, sumar extras de la categoría Extras); el resto se toca el precio para sumarlo, se ve el total y al finalizar el pedido llega al WhatsApp del local con el ID del cliente, lo que pidió, el total, el domicilio y cómo paga.
 - **Cuenta de cliente:** para pedir hay que tener cuenta (mail y contraseña). Cada cliente tiene su ID de socio (`SMB-XXXXX`) y sus estrellas, y canjea premios desde su cuenta.
-- **Panel de Santi** (`admin.html`): busca al cliente por su ID y le carga lo que gastó (1 estrella cada $1.000).
+- **Pedidos seguros:** cada pedido se guarda en la base con un número y el total lo calcula la base, no el celular del cliente.
+- **Panel de Santi** (`admin.html`): ve los pedidos en vivo, les cambia el estado (pagado, entregado, cancelado) y al finalizarlos le suma las estrellas al cliente. También carga compras del local.
 - Botones a Instagram, WhatsApp y "Cómo llegar" (Google Maps).
 - Se ve bien en el celular, que es donde la va a mirar casi todo el mundo.
 
@@ -31,7 +32,8 @@ js/carrito.js       el pedido de delivery y el mensaje de WhatsApp
 js/cuenta.js        ingreso de clientes, su ID de socio y sus estrellas
 js/datos.js         conexión con la base de datos (Supabase) o modo demo
 js/admin.js         el panel de Santi (admin.html)
-supabase.sql        las tablas y permisos para pegar en Supabase
+supabase.sql        las tablas y permisos para pegar en Supabase (paso 1)
+supabase-2-pedidos.sql   la carta y los pedidos con estado (paso 2)
 js/hoja.js          los paneles que suben desde abajo
 img/                logos y la ratita
 ```
@@ -40,10 +42,9 @@ Para verla en la compu, abrí `index.html` en el navegador.
 
 ## Cambiar el menú o los precios
 
-- **Precios y platos:** se editan en `js/menu-data.js`. Si el precio queda vacío, en la página aparece "Consultar".
+- **Precios y platos:** se editan en Supabase, en la tabla `productos`. Los pasos están en [COMO-EDITAR-EL-MENU.md](COMO-EDITAR-EL-MENU.md). (`js/menu-data.js` queda solo como respaldo y para el modo demo.)
 - **Datos del local:** se editan en `js/config.js`. Si un dato queda vacío (`""`), no se muestra.
-- **WhatsApp de los pedidos y cuentas:** ver [COMO-ACTIVAR-CUENTAS.md](COMO-ACTIVAR-CUENTAS.md).
-- **Desde Google Sheets:** el menú también se puede cargar desde una planilla, así no hace falta tocar código. Los pasos están en [COMO-EDITAR-EL-MENU.md](COMO-EDITAR-EL-MENU.md).
+- **WhatsApp de los pedidos, cuentas y estrellas:** ver [COMO-ACTIVAR-CUENTAS.md](COMO-ACTIVAR-CUENTAS.md).
 
 ---
 

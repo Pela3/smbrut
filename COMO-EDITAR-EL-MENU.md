@@ -1,61 +1,53 @@
 # Cómo editar el menú de SMBRUT
 
-El menú de la web sale de una planilla de Google Sheets. Lo que cambies en la planilla aparece en la web solo, en unos 5 minutos. No hace falta tocar nada de la web.
+La carta de la web sale de la base de datos (Supabase), de la tabla **productos**. Lo que cambies ahí aparece en la web apenas se recarga la página.
 
-## Primera vez (se hace una sola vez)
+Los precios de la tabla son los que valen: cuando un cliente hace un pedido, el total se calcula con estos precios, no con lo que muestra su celular.
 
-1. Entrá a [sheets.google.com](https://sheets.google.com) y creá una planilla en blanco.
-2. **Archivo → Importar → Subir** y elegí el archivo `menu-plantilla.csv` que está en esta carpeta. Ponele "Reemplazar hoja de cálculo".
-3. **Archivo → Compartir → Publicar en la web**. Elegí la hoja y, en el formato, **Valores separados por comas (.csv)**. Tocá **Publicar**.
-4. Copiá el link que te da y pegalo en `js/config.js`, entre las comillas de `planillaCSV`:
+## Dónde se edita
 
-   ```js
-   planillaCSV: "https://docs.google.com/spreadsheets/d/e/....../pub?output=csv",
-   ```
+1. Entrá a [supabase.com](https://supabase.com) → tu proyecto → **Table Editor** → **productos**.
+2. Hacé doble clic en la celda que quieras cambiar, escribí el valor nuevo y apretá Enter.
 
-Listo. Desde ahora el menú se edita solo desde la planilla, incluso desde la app de Google Sheets en el celular.
+También funciona desde el celular, en el navegador.
 
 ## Día a día
 
-| Quiero… | Hago esto en la planilla |
+| Quiero… | Hago esto en la tabla productos |
 |---|---|
-| Sacar algo que no hay **por hoy** | En la columna `disponible` escribo `no`. Cuando vuelva, pongo `si`. |
-| Sacar algo **para siempre** | Borro la fila. |
-| Agregar algo nuevo | Agrego una fila con la categoría, el nombre y el precio. |
-| Marcarlo como novedad | En la columna `nuevo` escribo `si`. Aparece la etiqueta "Nuevo". |
-| Cambiar un precio | Lo cambio. Se puede escribir `13500`, `13.500` o `$13.500`. |
+| Sacar algo que no hay **por hoy** | Pongo `disponible` en `false`. Cuando vuelva, lo pongo en `true`. |
+| Sacar algo **para siempre** | Pongo `disponible` en `false` (mejor que borrarlo: los pedidos viejos lo siguen nombrando). |
+| Agregar algo nuevo | **Insert → Insert row**. Completo categoría, nombre y precio. |
+| Marcarlo como novedad | Pongo `nuevo` en `true`. Aparece la etiqueta "Nuevo". |
+| Cambiar un precio | Lo cambio. Solo números, sin `$` ni puntos: `13500`. |
 | Crear una categoría nueva | Escribo un nombre nuevo en `categoria`. Se crea sola. |
-| Cambiar el orden | Muevo las filas. La web respeta el orden de la planilla. |
-| Ponerle foto a un plato | Pego el link de la foto en la columna `foto` (ver abajo). |
-| Sacarle la foto | Borro el link de la columna `foto`. |
+| Cambiar el orden | Cambio el número de `orden`. Los más chicos van primero. |
+| Ponerle foto a un plato | Escribo en `foto` el link de la foto (ver abajo). |
 
 ## Las columnas
 
 - **categoria**: Hamburguesas, Special, Guarniciones, etc. Tiene que estar escrita igual en todas sus filas.
 - **nombre**: el nombre del producto.
-- **descripcion**: los ingredientes. Puede quedar vacía.
-- **precio**: el precio (en las hamburguesas, el de la **simple**). Si queda vacío, la web muestra "Consultar".
-- **precio_doble**: solo para las hamburguesas. Si una categoría tiene algún precio doble, la web muestra las columnas Simple y Doble.
-- **disponible**: `si` o `no`.
-- **nuevo**: `si` o vacío.
-- **foto**: el link de la foto. Puede quedar vacía; no hace falta que todos los platos tengan foto.
+- **descripcion**: los ingredientes, separados por comas. En las hamburguesas, el cliente puede sacar cualquiera de estos ingredientes al pedir.
+- **precio**: el precio (en las hamburguesas, el de la **simple**). Si queda vacío, la web muestra "Consultar" y no se puede pedir.
+- **precio_doble**: solo para las hamburguesas. Si una categoría tiene algún precio doble, la web muestra Simple y Doble, y esas hamburguesas se pueden personalizar.
+- **disponible**: `true` aparece, `false` no.
+- **nuevo**: `true` muestra la etiqueta "Nuevo".
+- **foto**: el link de la foto, o el nombre de un archivo de la carpeta `img/fotos/` (por ejemplo `brut.jpg`). Puede quedar vacía.
+- **orden**: en qué orden aparece. Conviene dejar saltos de 10 (10, 20, 30…) para poder meter cosas en el medio.
 
-No cambies los nombres de la primera fila (los encabezados): la web los usa para leer la planilla.
+**La categoría Extras es especial:** lo que esté ahí se ofrece como extra al armar una hamburguesa ("Sumale extras"). Si agregan "Cheddar extra" o "Bacon extra" con su precio, aparecen solos.
 
 ## Cómo poner una foto
 
-1. Abrí **Google Drive** (en el celular, la app) y subí la foto.
-2. Tocá los tres puntitos de la foto → **Compartir** → **Acceso general**, y cambialo a **"Cualquier persona con el enlace"** (como Lector).
-3. Tocá **Copiar enlace**.
-4. Pegá ese link en la columna `foto` del plato, en la planilla.
+1. Abrí **Google Drive** y subí la foto.
+2. Tres puntitos de la foto → **Compartir** → **Acceso general** → **"Cualquier persona con el enlace"** (como Lector).
+3. **Copiar enlace** y pegalo en la columna `foto`.
 
-Si la foto no se comparte como "Cualquier persona con el enlace", la web no la puede mostrar y deja el plato sin foto, sin romperse.
+**Consejos:** la foto se recorta (cuadrada en la compu, apaisada en el celular), así que dejá la hamburguesa centrada y con aire alrededor. Mejor pocas fotos buenas que muchas regulares.
 
-**Consejos para que queden bien:**
-- La foto se recorta: cuadrada en la computadora y apaisada en el celular. Dejá la hamburguesa **centrada** y con un poco de aire alrededor.
-- Sacala de cerca, con luz de costado (una ventana) y fondo oscuro.
-- Mejor pocas fotos buenas que muchas regulares. Arrancá por las más vendidas.
+## Las estrellas
 
-## Otros datos
+En la tabla **ajustes**, `pesos_por_estrella` dice cuánta plata hay que gastar para sumar una estrella (hoy, 1000). Cuando suban los precios, subilo en la misma proporción.
 
-En `js/config.js` también podés completar el WhatsApp y los horarios (la dirección ya está cargada). Lo que quede vacío no aparece en la web.
+Los premios que se canjean están en la tabla **premios**.

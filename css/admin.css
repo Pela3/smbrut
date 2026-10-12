@@ -37,6 +37,7 @@
 .hoja__error.is-ok { color: var(--lima); }
 @media (max-width: 480px) {
   .panel__clave span { display: none; }
+  .panel__tab-extra { display: none; }
 }
 
 .panel__titulo {
@@ -80,15 +81,224 @@
 /* ---------- App ---------- */
 
 .panel__app {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 1.5rem var(--gutter) 4rem;
+}
+.panel__clientes {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
   align-items: start;
   gap: 2.5rem;
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 2rem var(--gutter) 4rem;
 }
+.panel__clientes[hidden] { display: none; }
 .panel__principal { display: grid; gap: 1.25rem; min-width: 0; }
+
+/* ---------- Pestañas del panel ---------- */
+
+.panel__tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.75rem;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  width: fit-content;
+  max-width: 100%;
+}
+.panel__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 46px;
+  padding: 0 1.2rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease, transform 140ms var(--ease-out);
+}
+.panel__tab:active { transform: scale(0.97); }
+.panel__tab.is-on { background: var(--ink); color: var(--bg); }
+.panel__badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--lima);
+  color: var(--lima-ink);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+@media (hover: hover) and (pointer: fine) {
+  .panel__tab:not(.is-on):hover { color: var(--ink); }
+}
+
+/* ---------- Pedidos ---------- */
+
+.pedidos[hidden] { display: none; }
+.pedidos__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.filtros { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.filtro {
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+.filtro span { margin-left: 0.2rem; color: var(--lima); font-variant-numeric: tabular-nums; }
+.filtro.is-on { background: var(--lima); color: var(--lima-ink); box-shadow: none; }
+.filtro.is-on span { color: var(--lima-ink); }
+
+.pedidos__vivo { display: flex; align-items: center; gap: 0.5rem; margin: 0; color: var(--muted); font-size: 0.85rem; }
+.pedidos__punto { width: 8px; height: 8px; border-radius: 999px; background: var(--lima); }
+@media (prefers-reduced-motion: no-preference) {
+  .pedidos__punto { animation: vivo 2s ease-in-out infinite; }
+}
+@keyframes vivo { 50% { opacity: 0.3; } }
+
+.pedidos__vacio {
+  padding: 3rem 1.5rem;
+  border-radius: 20px;
+  background: var(--bg-2);
+  color: var(--muted);
+  text-align: center;
+}
+
+.pedidos__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.pedido {
+  --estado: var(--muted);
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border-radius: 20px;
+  background: var(--bg-2);
+  box-shadow: 0 0 0 1px var(--line), inset 4px 0 0 var(--estado);
+}
+.pedido.estado-pendiente { --estado: #ffb547; }
+.pedido.estado-pagado { --estado: #5cc8ff; }
+.pedido.estado-entregado { --estado: var(--lima); }
+.pedido.estado-finalizado { --estado: var(--lima); opacity: 0.85; }
+.pedido.estado-cancelado { --estado: var(--resta); opacity: 0.6; }
+@media (prefers-reduced-motion: no-preference) {
+  .pedido.is-nuevo { animation: pedido-nuevo 1800ms var(--ease-out); }
+}
+@keyframes pedido-nuevo {
+  0% { transform: translateY(-8px); box-shadow: 0 0 0 2px var(--lima), inset 4px 0 0 var(--estado); }
+  60% { box-shadow: 0 0 0 2px var(--lima), inset 4px 0 0 var(--estado); }
+}
+
+.pedido__cabeza { display: flex; align-items: center; gap: 0.75rem; }
+.pedido__num {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1.9rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.pedido__hora { color: var(--muted); font-size: 0.85rem; }
+.pedido__pill {
+  margin-left: auto;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--estado) 18%, transparent);
+  color: var(--estado);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pedido__cliente { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.75rem; }
+.pedido__nombre {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 0.2em;
+}
+.pedido__codigo { color: var(--muted); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; }
+.pedido__tel { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--lima); font-size: 0.9rem; font-weight: 600; text-decoration: none; }
+@media (hover: hover) and (pointer: fine) {
+  .pedido__nombre:hover { text-decoration-color: var(--lima); }
+  .pedido__tel:hover { text-decoration: underline; }
+}
+
+.pedido__items { list-style: none; margin: 0; padding: 0.75rem 0; border-block: 1px solid var(--line); display: grid; gap: 0.55rem; }
+.pedido__item { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: 0.5rem; align-items: baseline; }
+.pedido__cant { color: var(--lima); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pedido__desc { display: grid; min-width: 0; }
+.pedido__mods { color: var(--muted); font-size: 0.85rem; }
+.pedido__item.is-canje .pedido__mods,
+.pedido__item.is-canje .pedido__precio { color: var(--lima); }
+.pedido__precio { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.pedido__datos { display: grid; gap: 0.4rem; margin: 0; }
+.pedido__datos div { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: 0.5rem; }
+.pedido__datos dt { color: var(--muted); font-size: 0.85rem; }
+.pedido__datos dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+
+.pedido__total { display: flex; align-items: baseline; justify-content: space-between; margin: 0; }
+.pedido__total span { color: var(--muted); font-weight: 600; }
+.pedido__total strong { font-family: var(--display); font-weight: 900; font-size: 2rem; font-variant-numeric: tabular-nums; }
+
+.pedido__error { margin: 0; }
+.pedido__error:empty { display: none; }
+
+.pedido__acciones { display: grid; gap: 0.6rem; }
+.pedido__estados {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.pedido__estado { background: transparent; min-height: 40px; padding: 0 0.5rem; justify-content: center; font-size: 0.9rem; color: var(--muted); }
+.pedido__estado.is-on { background: color-mix(in srgb, var(--estado) 22%, transparent); color: var(--estado); }
+.pedido__fila { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.pedido__finalizar { flex: 1 1 auto; justify-content: center; }
+.pedido__cancelar { color: var(--muted); }
+.pedido__pregunta { margin: 0; font-weight: 600; }
+.pedido__cierre { margin: 0; color: var(--lima); font-weight: 700; }
+.pedido__cierre.is-cancelado { color: var(--resta); }
+.btn--peligro { background: var(--resta); color: var(--bg); }
+@media (hover: hover) and (pointer: fine) {
+  .pedido__estado:not(.is-on):hover { color: var(--ink); }
+  .pedido__cancelar:hover { color: var(--resta); border-color: var(--resta); }
+}
 
 .panel__lateral {
   position: sticky;
@@ -410,7 +620,7 @@
 /* ---------- Celular ---------- */
 
 @media (max-width: 900px) {
-  .panel__app { grid-template-columns: 1fr; gap: 2rem; padding-top: 1.5rem; }
+  .panel__clientes { grid-template-columns: 1fr; gap: 2rem; }
   .panel__lateral { position: static; }
 }
 

@@ -10,6 +10,7 @@ window.SMBRUT_CARRITO = (function () {
   var config = window.SMBRUT_CONFIG || {};
   var hoja = window.SMBRUT_HOJA;
   var cuenta = window.SMBRUT_CUENTA;
+  var datos = window.SMBRUT_DATOS;
   var moneda = new Intl.NumberFormat("es-AR");
   var GUARDADO = "smbrut:carrito";
   var MAX_EXTRA = 3;
@@ -310,9 +311,14 @@ window.SMBRUT_CARRITO = (function () {
     return r ? r.value : "";
   }
 
-  function mensaje(perfil, domicilio, pago, aclaraciones) {
+  function numero(id) {
+    return "#" + String(id).padStart(4, "0");
+  }
+
+  // El mensaje se arma con el pedido que devolvió la base (precios y total calculados ahí)
+  function mensaje(perfil, ped) {
     var lineas = [
-      "*Nuevo pedido · SMBRUT*",
+      "*Pedido " + numero(ped.id) + " · SMBRUT*",
       "",
       "*Cliente:* " + perfil.nombre,
       "*ID:* " + perfil.codigo,
@@ -320,18 +326,35 @@ window.SMBRUT_CARRITO = (function () {
       "",
       "*Pedido:*"
     ];
-    items.forEach(function (i) {
-      var mods = i.canje ? ["canje, " + i.canje.estrellas * i.cant + " estrellas"] : cambios(i);
+    ped.items.forEach(function (i) {
+      var mods = i.canje ? ["canje, " + i.canje * i.cant + " estrellas"] : (i.cambios || []);
       lineas.push(i.cant + "x " + nombreItem(i) + (mods.length ? " (" + mods.join(", ") + ")" : "") +
-        ": " + plata(i.cant * unitario(i)));
+        ": " + plata(i.cant * i.precio));
     });
-    lineas.push("", "*Total: " + plata(total()) + "*");
-    var reservadas = estrellasReservadas();
-    if (reservadas) lineas.push("*Canjea:* " + reservadas + " estrellas");
-    lineas.push("", "*Domicilio:* " + domicilio);
-    if (aclaraciones) lineas.push("*Aclaraciones:* " + aclaraciones);
-    lineas.push("*Pago:* " + pago);
+    lineas.push("", "*Total: " + plata(ped.total) + "*");
+    if (ped.canje_estrellas) lineas.push("*Canjea:* " + ped.canje_estrellas + " estrellas");
+    lineas.push("", "*Domicilio:* " + ped.domicilio);
+    if (ped.aclaraciones) lineas.push("*Aclaraciones:* " + ped.aclaraciones);
+    lineas.push("*Pago:* " + ped.pago);
     return lineas.join("\n");
+  }
+
+  // Lo que se manda a la base: solo qué se pidió, nunca precios
+  function lineasParaBase() {
+    var ids = {};
+    $menu.querySelectorAll("[data-add]").forEach(function (b) { ids[b.dataset.nombre] = Number(b.dataset.id); });
+    var extras = {};
+    listaExtras().forEach(function (e) { extras[e.nombre] = e.id; });
+    return items.map(function (i) {
+      if (i.canje) return { premio: i.canje.id, cant: i.cant };
+      return {
+        producto: ids[i.nombre],
+        variante: i.variante || "",
+        cant: i.cant,
+        sin: i.sin,
+        extras: i.extras.map(function (e) { return { producto: extras[e.nombre], cant: e.cant }; })
+      };
+    });
   }
 
   function error(texto, foco) {
@@ -365,58 +388,46 @@ window.SMBRUT_CARRITO = (function () {
       return error("Te alcanzan " + (perfil.estrellas || 0) + " estrellas y los canjes suman " + reservadas + ". Sacá alguno.");
     }
 
-    var texto = mensaje(perfil, domicilio, pago, aclaraciones);
     var telefono = String(config.whatsapp || "").replace(/\D/g, "");
-    if (!telefono && !config.demo) return error("Todavía no está cargado el WhatsApp del local. Avisale a SMBRUT por Instagram.");
+    var textoBoton = $finalizar.innerHTML;
+    $finalizar.disabled = true;
+    $finalizar.textContent = "Enviando pedido…";
 
-    // En modo demo no se abre WhatsApp: se muestra el mensaje que le llegaría al local
-    var $demo = $hoja.querySelector("[data-mensaje-demo]");
-    $demo.hidden = !config.demo;
-    $listo.classList.toggle("is-demo", !!config.demo);
-    if (config.demo) {
-      $demo.textContent = texto;
-    } else {
-      ultimoLink = "https://wa.me/" + telefono + "?text=" + encodeURIComponent(texto);
-      window.open(ultimoLink, "_blank", "noopener");
-    }
+    // Primero se guarda en la base: ahí se calculan los precios y el total, y Santi lo ve en su panel
+    datos.crearPedido(lineasParaBase(), domicilio, aclaraciones, pago)
+      .then(function (ped) {
+        var texto = mensaje(perfil, ped);
+        $listo.querySelector("[data-listo-numero]").textContent = numero(ped.id);
+        $listo.querySelector("[data-listo-total]").textContent = plata(ped.total);
 
-    // Los canjes descuentan las estrellas en la cuenta del cliente
-    var $avisoListo = $hoja.querySelector("[data-listo-canje]");
-    $avisoListo.hidden = true;
-    var premios = [];
-    items.forEach(function (i) {
-      for (var n = 0; i.canje && n < i.cant; n++) premios.push(i.canje.id);
-    });
-    if (premios.length) {
-      cuenta.canjear(premios).catch(function (err) {
-        $avisoListo.textContent = "No pudimos descontar tus estrellas (" + err.message + "). SMBRUT lo va a revisar con tu ID.";
-        $avisoListo.hidden = false;
+        // En modo demo no hay WhatsApp: se muestra el mensaje que le llegaría al local
+        var $demo = $hoja.querySelector("[data-mensaje-demo]");
+        $demo.hidden = !config.demo;
+        $listo.classList.toggle("is-demo", !!config.demo);
+        if (config.demo) $demo.textContent = texto;
+        ultimoLink = telefono ? "https://wa.me/" + telefono + "?text=" + encodeURIComponent(texto) : "";
+        var $wa = $hoja.querySelector("[data-reabrir]");
+        $wa.href = ultimoLink;
+        $wa.hidden = !ultimoLink || !!config.demo;
+
+        items = [];
+        modo = false;
+        guardar();
+        pintar();
+        $aclaraciones.value = "";
+        $hoja.querySelectorAll("input[name=pago]").forEach(function (r) { r.checked = false; });
+        $pedido.hidden = true;
+        $listo.hidden = false;
+        // Las estrellas del canje ya se descontaron en la base
+        datos.refrescar();
+      })
+      .catch(function (err) {
+        error(err.message || "No pudimos mandar el pedido. Probá de nuevo.");
+      })
+      .then(function () {
+        $finalizar.disabled = items.length === 0;
+        $finalizar.innerHTML = textoBoton;
       });
-    }
-
-    cuenta.guardarDomicilio(domicilio);
-    cuenta.registrarPedido({
-      items: items.map(function (i) {
-        return {
-          nombre: i.nombre, variante: i.variante || "", precio: unitario(i), cant: i.cant,
-          cambios: cambios(i), canje: i.canje ? i.canje.estrellas : 0
-        };
-      }),
-      total: total(),
-      domicilio: domicilio,
-      aclaraciones: aclaraciones,
-      pago: pago
-    });
-
-    items = [];
-    modo = false;
-    guardar();
-    pintar();
-    $aclaraciones.value = "";
-    $hoja.querySelectorAll("input[name=pago]").forEach(function (r) { r.checked = false; });
-    $hoja.querySelector("[data-reabrir]").href = ultimoLink;
-    $pedido.hidden = true;
-    $listo.hidden = false;
   }
 
   /* ---------- Armar hamburguesa ---------- */
@@ -431,7 +442,7 @@ window.SMBRUT_CARRITO = (function () {
       if (vistos[b.dataset.nombre]) return false;
       vistos[b.dataset.nombre] = true;
       return true;
-    }).map(function (b) { return { nombre: b.dataset.nombre, precio: Number(b.dataset.precio) }; });
+    }).map(function (b) { return { id: Number(b.dataset.id), nombre: b.dataset.nombre, precio: Number(b.dataset.precio) }; });
   }
 
   // De "Medallón de carne, cheddar x2, salsa brut" saca lo que se puede quitar

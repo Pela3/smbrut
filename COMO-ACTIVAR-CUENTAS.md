@@ -3,8 +3,11 @@
 La web tiene:
 
 - **Cuentas de clientes** con mail y contraseña. Para pedir delivery hay que tener cuenta. Cada cliente tiene un ID de socio (por ejemplo `SMB-7K2Q9`) y sus estrellas.
-- **El panel de Santi** en `admin.html` (no tiene link desde la web, se entra escribiendo la dirección: `.../admin.html`). Ahí Santi busca al cliente por su ID, teléfono o nombre, carga cuánto gastó (1 estrella cada $1.000) o corrige a mano. Cada movimiento queda anotado.
-- **Canjes:** los hace el cliente desde su cuenta. El premio entra gratis a su pedido y las estrellas se descuentan al finalizarlo. En el WhatsApp del pedido llega cuántas estrellas canjeó.
+- **Pedidos seguros:** el pedido se guarda en la base con un número (#0142) y el total lo calcula la base con los precios de la tabla `productos`. Aunque alguien edite el WhatsApp o toque la página, el total real es el del panel.
+- **El panel de Santi** en `admin.html` (no tiene link desde la web, se entra escribiendo la dirección: `.../admin.html`), con dos pestañas:
+  - **Pedidos:** llegan en vivo. Santi los marca Pagado o Entregado, los cancela, o toca **Finalizar** y al cliente se le suman las estrellas solas (1 cada $1.000).
+  - **Clientes y estrellas:** busca al cliente por ID, teléfono o nombre, carga compras hechas en el local o corrige a mano. Cada movimiento queda anotado.
+- **Canjes:** los hace el cliente desde su cuenta. El premio entra gratis a su pedido y las estrellas se descuentan al hacerlo. Si Santi cancela el pedido, se le devuelven.
 
 Mientras no se configure Supabase, todo funciona en **modo demo**: los datos quedan guardados en cada navegador y hay una cuenta de admin de prueba (`santi@smbrut.com` / `smbrut`). Sirve para mostrarlo, no para usarlo con clientes de verdad.
 
@@ -12,6 +15,7 @@ Mientras no se configure Supabase, todo funciona en **modo demo**: los datos que
 
 1. Entrá a [supabase.com](https://supabase.com) y creá una cuenta con un mail de SMBRUT. Tocá **New project**. Nombre: `smbrut`. Región: **South America (São Paulo)**. Inventá una contraseña de base de datos y guardala en un lugar seguro.
 2. Cuando termine de crearse, andá a **SQL Editor → New query**. Pegá todo el contenido del archivo `supabase.sql` y tocá **Run**. Tiene que decir "Success".
+   Después, en otra **New query**, hacé lo mismo con `supabase-2-pedidos.sql` (la carta y los pedidos). Siempre en ese orden.
 3. Andá a **Authentication → Sign In / Providers** (o **Providers**):
    - Dejá activado **Email**.
    - **Desactivá "Confirm email"**. Si queda activado, el cliente tiene que confirmar su mail antes de pedir, y Supabase gratis manda muy pocos mails por hora.
@@ -35,10 +39,14 @@ Mientras no se configure Supabase, todo funciona en **modo demo**: los datos que
 
 | Quiero… | Hago esto |
 |---|---|
-| Cargar una compra | Entro a `admin.html`, busco su ID (le llega en cada pedido por WhatsApp), en **Compra** escribo cuánto gastó y toco **Sumar**. Las estrellas se calculan solas. |
-| Ver qué canjeó un cliente | En el WhatsApp del pedido dice "Canjea: X estrellas". En el panel, en su historial, aparece "Canje: Papas (pedido web)". |
+| Atender un pedido de la web | Pestaña **Pedidos**. Lo marco **Pagado** / **Entregado**. Cuando termina, toco **Finalizar y sumar ★** y confirmo: al cliente se le suman las estrellas. |
+| Saber si me cambiaron un pedido | Comparo el número del WhatsApp (#0142) con el del panel. Lo que vale es lo del panel. |
+| Cancelar un pedido | **Cancelar pedido** y confirmo. Si había canjeado estrellas, se le devuelven. |
+| Cargar una compra hecha en el local | Pestaña **Clientes y estrellas**, busco su ID, en **Compra** escribo cuánto gastó y toco **Sumar**. |
+| Ver qué canjeó un cliente | En el pedido del panel figura "Canjea: X estrellas". En su historial aparece "Canje en el pedido #0142". |
+| Cambiar precios o la carta | Supabase → **Table Editor → productos**. Ver `COMO-EDITAR-EL-MENU.md`. |
 | Corregir un error o regalar estrellas | Pestaña **Ajuste**, con + o −. |
-| Cambiar cuánto vale una estrella | En `js/config.js`, en `estrellas.pesosPorEstrella`. Cuando suban los precios, subilo en la misma proporción. |
+| Cambiar cuánto vale una estrella | Supabase → **Table Editor → ajustes** → `pesos_por_estrella`. Cuando suban los precios, subilo en la misma proporción. |
 | Cambiar los premios | Supabase → **Table Editor → premios**. Se puede cambiar el nombre, las estrellas, o poner `activo` en `false` para sacar uno. |
 | Ver los pedidos de un cliente | Al abrir su ficha en el panel aparecen sus últimos pedidos por la web. |
 | Ver todos los clientes | Supabase → **Table Editor → perfiles**. |

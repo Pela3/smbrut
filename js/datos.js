@@ -27,6 +27,21 @@ window.SMBRUT_DATOS = (function () {
     return s ? "SMB-" + s : "";
   }
 
+  // Una fila de la tabla productos, con la forma que usa la carta (igual que la planilla)
+  function aCarta(p) {
+    return {
+      id: p.id,
+      categoria: p.categoria,
+      nombre: p.nombre,
+      descripcion: p.descripcion || "",
+      precio: p.precio ? String(p.precio) : "",
+      precio_doble: p.precio_doble ? String(p.precio_doble) : "",
+      disponible: p.disponible === false ? "no" : "si",
+      nuevo: p.nuevo ? "si" : "",
+      foto: p.foto || ""
+    };
+  }
+
   /* ---------- Supabase ---------- */
 
   var MENSAJES = [
@@ -142,23 +157,30 @@ window.SMBRUT_DATOS = (function () {
             .then(resultado).then(function (p) { perfil = p; avisar(); return p; });
         });
       },
-      registrarPedido: function (pedido) {
+      // La carta sale de la base: los precios que valen son estos
+      productos: function () {
         return conCliente(function () {
-          pedido.usuario = perfil.id;
-          return cliente.from("pedidos").insert(pedido).then(resultado);
+          return cliente.from("productos").select("*").order("orden").order("id").then(resultado)
+            .then(function (filas) { return filas.map(aCarta); });
+        });
+      },
+      ajustes: function () {
+        return conCliente(function () {
+          return cliente.from("ajustes").select("pesos_por_estrella").eq("id", 1).single().then(resultado);
+        });
+      },
+      // El pedido se guarda en la base, que calcula precios y total. Devuelve el pedido con su número
+      crearPedido: function (items, domicilio, aclaraciones, pago) {
+        return conCliente(function () {
+          return cliente.rpc("crear_pedido", {
+            p_items: items, p_domicilio: domicilio, p_aclaraciones: aclaraciones || null, p_pago: pago
+          }).then(resultado);
         });
       },
       premios: function () {
         return conCliente(function () {
           return cliente.from("premios").select("id, nombre, estrellas").eq("activo", true)
             .order("estrellas").then(resultado);
-        });
-      },
-      // El cliente canjea premios: se descuentan sus estrellas
-      canjear: function (ids) {
-        return conCliente(function () {
-          return cliente.rpc("canjear", { p_premios: ids }).then(resultado)
-            .then(function (p) { perfil = p; avisar(); return p; });
         });
       },
 
@@ -193,6 +215,40 @@ window.SMBRUT_DATOS = (function () {
           return cliente.from("pedidos").select("*").eq("usuario", usuarioId)
             .order("creado", { ascending: false }).limit(5).then(resultado);
         });
+      },
+      // Los últimos pedidos de todos, con los datos del cliente
+      listaPedidos: function () {
+        return conCliente(function () {
+          return cliente.from("pedidos").select("*, perfiles(nombre, codigo, telefono)")
+            .order("creado", { ascending: false }).limit(100).then(resultado)
+            .then(function (filas) {
+              return filas.map(function (p) {
+                var c = p.perfiles || {};
+                p.nombre = c.nombre;
+                p.codigo = c.codigo;
+                p.telefono = c.telefono;
+                return p;
+              });
+            });
+        });
+      },
+      estadoPedido: function (id, estado) {
+        return conCliente(function () {
+          return cliente.rpc("estado_pedido", { p_id: id, p_estado: estado }).then(resultado);
+        });
+      },
+      finalizarPedido: function (id) {
+        return conCliente(function () {
+          return cliente.rpc("finalizar_pedido", { p_id: id }).then(resultado);
+        });
+      },
+      // Avisa cuando entra o cambia un pedido (en vivo)
+      escucharPedidos: function (fn) {
+        conCliente(function () {
+          cliente.channel("pedidos-panel")
+            .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, function () { fn(); })
+            .subscribe();
+        });
       }
     };
   }
@@ -200,10 +256,26 @@ window.SMBRUT_DATOS = (function () {
   /* ---------- Modo demo (sin base de datos) ---------- */
 
   function local() {
-    var CLAVE = "smbrut:demo-db-v2";
+    var CLAVE = "smbrut:demo-db-v3";
+    var oyentesPedidos = [];
 
     function ahora(diasAtras) {
       return new Date(Date.now() - (diasAtras || 0) * 864e5).toISOString();
+    }
+
+    // En el modo demo la carta sale de js/menu-data.js (con id = posición)
+    function productosDemo() {
+      return (window.SMBRUT_MENU || []).map(function (p, i) {
+        return Object.assign({ id: i + 1 }, p);
+      });
+    }
+
+    function precioNum(v) {
+      return Number(String(v || "").replace(/\D/g, "")) || null;
+    }
+
+    function pesosPorEstrella() {
+      return Number((config.estrellas || {}).pesosPorEstrella) || 1000;
     }
 
     // En el modo demo los premios salen de js/config.js; con Supabase, de la tabla premios
@@ -222,7 +294,8 @@ window.SMBRUT_DATOS = (function () {
           { id: "ej2", email: "tomas@ejemplo.com", clave: "123456", codigo: "SMB-9PZ2M", nombre: "Tomás (ejemplo)", telefono: "2246 508833", domicilio: "Av. 32 y 5", estrellas: 142, es_admin: false, creado: ahora(12) }
         ],
         pedidos: [
-          { id: 1, usuario: "ej1", items: [{ nombre: "Brut", variante: "Doble", precio: 15500, cant: 2 }], total: 31000, domicilio: "Calle 38 nro 450", pago: "Efectivo", creado: ahora(3) }
+          { id: 1, usuario: "ej1", items: [{ nombre: "Brut", variante: "Doble", precio: 15500, cant: 2, cambios: [], canje: 0 }], total: 31000, domicilio: "Calle 38 nro 450", pago: "Efectivo", estado: "finalizado", canje_estrellas: 0, estrellas_sumadas: 31, creado: ahora(3) },
+          { id: 2, usuario: "ej2", items: [{ nombre: "Bacon Cheese", variante: "Simple", precio: 13000, cant: 1, cambios: ["sin cheddar"], canje: 0 }, { nombre: "Papas", variante: "", precio: 8000, cant: 1, cambios: [], canje: 0 }], total: 21000, domicilio: "Av. 32 y 5", aclaraciones: "Timbre B", pago: "Transferencia", estado: "pendiente", canje_estrellas: 0, estrellas_sumadas: 0, creado: ahora(0.01) }
         ],
         movimientos: [
           { id: 1, usuario: "ej1", cantidad: 28, monto: 28000, motivo: "", admin: "admin", creado: ahora(18) },
@@ -295,8 +368,18 @@ window.SMBRUT_DATOS = (function () {
 
     // Si el panel de admin cambia algo en otra pestaña, se actualiza acá
     window.addEventListener("storage", function (e) {
-      if (e.key === CLAVE) cargar();
+      if (e.key !== CLAVE) return;
+      cargar();
+      oyentesPedidos.forEach(function (fn) { fn(); });
     });
+
+    function buscarPedido(d, id) {
+      var p = d.pedidos.filter(function (x) { return x.id === id; })[0];
+      if (!p) throw new Error("No existe el pedido #" + id + ".");
+      if (p.estado === "finalizado") throw new Error("El pedido #" + id + " ya está finalizado.");
+      if (p.estado === "cancelado") throw new Error("El pedido #" + id + " está cancelado.");
+      return p;
+    }
 
     return {
       listo: Promise.resolve().then(cargar),
@@ -363,37 +446,69 @@ window.SMBRUT_DATOS = (function () {
           return cargar();
         });
       },
-      premios: function () {
-        return Promise.resolve(premiosDemo());
+      productos: function () {
+        return Promise.resolve(productosDemo());
       },
-      canjear: function (ids) {
+      ajustes: function () {
+        return Promise.resolve({ pesos_por_estrella: pesosPorEstrella() });
+      },
+      // Misma lógica que crear_pedido en la base
+      crearPedido: function (lineas, domicilio, aclaraciones, pago) {
         return demora(function () {
           var d = db();
-          var u = d.usuarios.filter(function (x) { return x.id === perfil.id; })[0];
-          var lista = premiosDemo();
-          var elegidos = ids.map(function (id) {
-            var pr = lista.filter(function (x) { return x.id === id; })[0];
-            if (!pr) throw new Error("Ese premio ya no existe.");
-            return pr;
+          var u = d.usuarios.filter(function (x) { return x.id === (perfil || {}).id; })[0];
+          if (!u) throw new Error("Tenés que ingresar para pedir.");
+          if (u.es_admin) throw new Error("La cuenta de admin no puede hacer pedidos.");
+          if (!lineas.length) throw new Error("El pedido está vacío.");
+          if (!String(domicilio || "").trim()) throw new Error("Falta el domicilio de entrega.");
+          if (pago !== "Efectivo" && pago !== "Transferencia") throw new Error("Elegí cómo vas a pagar.");
+          var carta = {};
+          productosDemo().forEach(function (p) { carta[p.id] = p; });
+          var premios = {};
+          premiosDemo().forEach(function (p) { premios[p.id] = p; });
+          var total = 0, costo = 0, items = [];
+          lineas.forEach(function (l) {
+            if (!(l.cant >= 1 && l.cant <= 20)) throw new Error("Hay una cantidad que no es válida.");
+            if (l.premio) {
+              var pr = premios[l.premio];
+              if (!pr) throw new Error("Uno de los premios ya no está disponible.");
+              costo += pr.estrellas * l.cant;
+              items.push({ nombre: pr.nombre, variante: "", precio: 0, cant: l.cant, cambios: [], canje: pr.estrellas });
+              return;
+            }
+            var p = carta[l.producto];
+            if (!p || p.disponible === "no") throw new Error("Uno de los productos ya no está disponible. Actualizá la página.");
+            var unit = precioNum(l.variante === "Doble" ? p.precio_doble : p.precio);
+            if (!unit) throw new Error(p.nombre + " no tiene precio en la web. Consultalo por WhatsApp.");
+            var cambios = (l.sin || []).slice(0, 10).map(function (x) { return "sin " + x; });
+            (l.extras || []).forEach(function (e) {
+              var x = carta[e.producto];
+              if (!x || x.categoria !== "Extras" || !precioNum(x.precio)) throw new Error("Uno de los extras ya no está disponible.");
+              unit += precioNum(x.precio) * e.cant;
+              cambios.push("+" + e.cant + " " + x.nombre.toLowerCase());
+            });
+            total += unit * l.cant;
+            items.push({ nombre: p.nombre, variante: l.variante || "", precio: unit, cant: l.cant, cambios: cambios, canje: 0 });
           });
-          var costo = elegidos.reduce(function (n, pr) { return n + pr.estrellas; }, 0);
-          if (costo > u.estrellas) throw new Error("No te alcanzan las estrellas.");
+          if (costo > u.estrellas) throw new Error("Tenés " + u.estrellas + " estrellas y los canjes suman " + costo + ".");
           u.estrellas -= costo;
-          elegidos.forEach(function (pr, n) {
-            d.movimientos.push({ id: Date.now() + n, usuario: u.id, cantidad: -pr.estrellas, monto: null, motivo: "Canje: " + pr.nombre + " (pedido web)", admin: null, creado: ahora() });
-          });
+          var ped = {
+            id: d.pedidos.reduce(function (n, x) { return Math.max(n, x.id); }, 0) + 1,
+            usuario: u.id, items: items, total: total, domicilio: domicilio.trim(), aclaraciones: aclaraciones || null,
+            pago: pago, estado: "pendiente", canje_estrellas: costo, estrellas_sumadas: 0, creado: ahora()
+          };
+          d.pedidos.push(ped);
+          if (costo) {
+            d.movimientos.push({ id: Date.now(), usuario: u.id, cantidad: -costo, monto: null, motivo: "Canje en el pedido #" + ped.id, admin: null, creado: ahora() });
+          }
+          u.domicilio = ped.domicilio;
           guardar(d);
-          return cargar();
+          cargar();
+          return ped;
         });
       },
-      registrarPedido: function (pedido) {
-        var d = db();
-        pedido.id = Date.now();
-        pedido.usuario = perfil.id;
-        pedido.creado = ahora();
-        d.pedidos.push(pedido);
-        guardar(d);
-        return Promise.resolve();
+      premios: function () {
+        return Promise.resolve(premiosDemo());
       },
 
       // Admin
@@ -451,6 +566,58 @@ window.SMBRUT_DATOS = (function () {
             .sort(function (a, b) { return b.creado < a.creado ? -1 : 1; })
             .slice(0, 5);
         });
+      },
+      listaPedidos: function () {
+        return demora(function () {
+          exigirAdmin();
+          var d = db();
+          var clientes = {};
+          d.usuarios.forEach(function (u) { clientes[u.id] = u; });
+          return d.pedidos.slice()
+            .sort(function (a, b) { return b.creado < a.creado ? -1 : 1; })
+            .slice(0, 100)
+            .map(function (p) {
+              var c = clientes[p.usuario] || {};
+              return Object.assign({ estado: "pendiente", canje_estrellas: 0, estrellas_sumadas: 0 }, p,
+                { nombre: c.nombre, codigo: c.codigo, telefono: c.telefono });
+            });
+        });
+      },
+      estadoPedido: function (id, estado) {
+        return demora(function () {
+          exigirAdmin();
+          if (["pendiente", "pagado", "entregado", "cancelado"].indexOf(estado) === -1) throw new Error("Estado no válido.");
+          var d = db();
+          var p = buscarPedido(d, id);
+          if (estado === "cancelado" && p.canje_estrellas) {
+            var u = d.usuarios.filter(function (x) { return x.id === p.usuario; })[0];
+            u.estrellas += p.canje_estrellas;
+            d.movimientos.push({ id: Date.now(), usuario: u.id, cantidad: p.canje_estrellas, monto: null, motivo: "Devolución del canje, pedido #" + p.id + " cancelado", admin: perfil.id, creado: ahora() });
+          }
+          p.estado = estado;
+          guardar(d);
+          return p;
+        });
+      },
+      finalizarPedido: function (id) {
+        return demora(function () {
+          exigirAdmin();
+          var d = db();
+          var p = buscarPedido(d, id);
+          var n = Math.floor(p.total / pesosPorEstrella());
+          if (n > 0) {
+            var u = d.usuarios.filter(function (x) { return x.id === p.usuario; })[0];
+            u.estrellas += n;
+            d.movimientos.push({ id: Date.now(), usuario: u.id, cantidad: n, monto: p.total, motivo: "Pedido #" + p.id, admin: perfil.id, creado: ahora() });
+          }
+          p.estado = "finalizado";
+          p.estrellas_sumadas = n;
+          guardar(d);
+          return p;
+        });
+      },
+      escucharPedidos: function (fn) {
+        oyentesPedidos.push(fn);
       }
     };
   }

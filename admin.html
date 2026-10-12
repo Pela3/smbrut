@@ -66,6 +66,31 @@
 
   <!-- Panel -->
   <main class="panel__app" data-vista="app" hidden>
+    <nav class="panel__tabs" aria-label="Secciones del panel">
+      <button class="panel__tab is-on" type="button" data-tab="pedidos" aria-current="page">
+        <i class="ph-bold ph-receipt" aria-hidden="true"></i> Pedidos <span class="panel__badge" data-badge-pedidos hidden></span>
+      </button>
+      <button class="panel__tab" type="button" data-tab="clientes">
+        <i class="ph-bold ph-star" aria-hidden="true"></i> Clientes<span class="panel__tab-extra"> y estrellas</span>
+      </button>
+    </nav>
+
+    <!-- Pedidos -->
+    <section class="pedidos" data-seccion-app="pedidos" aria-label="Pedidos">
+      <div class="pedidos__cabeza">
+        <div class="filtros" role="group" aria-label="Filtrar pedidos">
+          <button class="filtro is-on" type="button" data-filtro="activos" aria-pressed="true">Activos <span data-cuenta-filtro="activos"></span></button>
+          <button class="filtro" type="button" data-filtro="finalizados" aria-pressed="false">Finalizados <span data-cuenta-filtro="finalizados"></span></button>
+          <button class="filtro" type="button" data-filtro="cancelados" aria-pressed="false">Cancelados <span data-cuenta-filtro="cancelados"></span></button>
+        </div>
+        <p class="pedidos__vivo"><span class="pedidos__punto" aria-hidden="true"></span> Los pedidos nuevos aparecen solos</p>
+      </div>
+      <p class="pedidos__vacio" data-pedidos-vacio hidden></p>
+      <ol class="pedidos__lista" data-pedidos aria-live="polite"></ol>
+    </section>
+
+    <!-- Clientes y estrellas -->
+    <div class="panel__clientes" data-seccion-app="clientes" hidden>
     <section class="panel__principal" aria-label="Sumar estrellas">
       <form class="buscador" data-form-buscar role="search" novalidate>
         <label class="buscador__label" for="buscar">Buscar cliente</label>
@@ -148,6 +173,7 @@
       <h2 class="panel__sub" id="recientes-t">Últimos movimientos</h2>
       <ul class="movs movs--global" data-recientes></ul>
     </aside>
+    </div>
   </main>
 
   <script>window.SMBRUT_APP = "admin";</script>

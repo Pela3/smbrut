@@ -170,15 +170,15 @@
     <div class="hoja__panel hoja__listo" data-panel-listo hidden>
       <div class="hoja__cuerpo">
         <img class="listo__rata" src="img/ratita.png" width="1198" height="1267" alt="" loading="lazy">
-        <p class="listo__titulo">¡Pedido armado!</p>
-        <p class="listo__texto">Te abrimos WhatsApp con todo el pedido. <strong>Mandá el mensaje</strong> para que SMBRUT lo confirme.</p>
-        <p class="listo__texto listo__texto--demo">Así le llegaría el pedido a SMBRUT por WhatsApp:</p>
+        <p class="listo__titulo">¡Pedido <span data-listo-numero></span> recibido!</p>
+        <p class="listo__total">Total <strong data-listo-total></strong></p>
+        <p class="listo__texto">Ya le llegó a SMBRUT. <strong>Mandá el WhatsApp</strong> para coordinar el envío.</p>
+        <p class="listo__texto listo__texto--demo">Así le llegaría el WhatsApp a SMBRUT:</p>
         <pre class="listo__mensaje" data-mensaje-demo hidden></pre>
-        <p class="hoja__error listo__aviso" data-listo-canje hidden></p>
       </div>
       <footer class="hoja__pie">
-        <a class="btn btn--ghost btn--bloque" data-reabrir target="_blank" rel="noopener"><i class="ph-bold ph-whatsapp-logo" aria-hidden="true"></i> No se abrió WhatsApp</a>
-        <button class="btn btn--lima btn--bloque" type="button" data-cerrar>Listo</button>
+        <a class="btn btn--lima btn--bloque btn--grande" data-reabrir target="_blank" rel="noopener"><i class="ph-bold ph-whatsapp-logo" aria-hidden="true"></i> Mandar por WhatsApp</a>
+        <button class="btn btn--ghost btn--bloque" type="button" data-cerrar>Listo</button>
       </footer>
     </div>
   </dialog>

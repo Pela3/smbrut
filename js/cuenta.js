@@ -112,14 +112,16 @@ window.SMBRUT_CUENTA = (function () {
 
   var premios = [];
 
+  var pesosPorEstrella = Number((config.estrellas || {}).pesosPorEstrella) || 1000;
+
   function cargarPremios() {
+    datos.ajustes().then(function (a) { pesosPorEstrella = a.pesos_por_estrella || pesosPorEstrella; }).catch(function () {});
     return datos.premios()
       .then(function (lista) { premios = lista || []; if (perfil()) pintarPremios(perfil().estrellas || 0); })
       .catch(function (err) { console.warn("No se pudieron leer los premios.", err); });
   }
 
   function pintarPremios(n) {
-    var programa = config.estrellas || {};
     var moneda = new Intl.NumberFormat("es-AR");
     var carrito = window.SMBRUT_CARRITO;
     var reservadas = carrito ? carrito.estrellasReservadas() : 0;
@@ -129,7 +131,7 @@ window.SMBRUT_CUENTA = (function () {
       ? "Te faltan " + (proximo.estrellas - n) + " para " + proximo.nombre.toLowerCase() + "."
       : premios.length ? "Ya podés canjear cualquier premio." : "";
     $hoja.querySelector("[data-premios-regla]").textContent =
-      "Sumás 1 estrella cada $" + moneda.format(programa.pesosPorEstrella || 1000) + " que gastás." +
+      "Sumás 1 estrella cada $" + moneda.format(pesosPorEstrella) + " que gastás." +
       (reservadas ? " Ya tenés " + reservadas + " reservadas en tu pedido." : "");
 
     var $lista = $hoja.querySelector("[data-premios]");
@@ -349,26 +351,6 @@ window.SMBRUT_CUENTA = (function () {
     perfil: perfil,
     pedirIngreso: pedirIngreso,
     abrir: abrir,
-    onCambio: function (fn) { oyentes.push(fn); },
-
-    canjear: function (ids) {
-      return datos.canjear(ids);
-    },
-
-    guardarDomicilio: function (domicilio) {
-      var p = perfil();
-      if (!p || p.domicilio === domicilio) return;
-      datos.actualizarPerfil({ domicilio: domicilio }).catch(function (err) {
-        console.warn("No se pudo guardar el domicilio.", err);
-      });
-    },
-
-    // Queda guardado en la cuenta; Santi lo ve en el panel para sumarle estrellas
-    registrarPedido: function (pedido) {
-      if (!perfil()) return;
-      datos.registrarPedido(pedido).catch(function (err) {
-        console.warn("No se pudo guardar el pedido.", err);
-      });
-    }
+    onCambio: function (fn) { oyentes.push(fn); }
   };
 })();

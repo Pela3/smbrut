@@ -164,6 +164,7 @@
     btn.dataset.nombre = item.nombre;
     btn.dataset.variante = variante;
     btn.dataset.precio = monto(valor);
+    btn.dataset.id = item.id;
     if (item.descripcion) btn.dataset.desc = item.descripcion;
     if (tipo) btn.dataset.tipo = tipo;
     btn.setAttribute("aria-label", "Sumar " + item.nombre + (variante ? " " + variante.toLowerCase() : "") + " al pedido, " + p);
@@ -488,14 +489,33 @@
 
   setupContacto();
 
-  if (config.planillaCSV) {
+  // Cada plato lleva un id para armar el pedido. Sin base de datos, el id es su posición
+  function conIds(items) {
+    return items.map(function (item, i) {
+      return item.id ? item : Object.assign({ id: i + 1 }, item);
+    });
+  }
+
+  var datos = window.SMBRUT_DATOS;
+  if (datos && datos.modo === "supabase") {
+    // Con base de datos, la carta y los precios salen de la tabla productos
+    datos.productos()
+      .then(function (items) {
+        if (!items.length) throw new Error("La tabla productos está vacía");
+        render(items);
+      })
+      .catch(function (err) {
+        console.warn("No se pudo leer la carta de la base, muestro la de respaldo.", err);
+        render(conIds(fallback));
+      });
+  } else if (config.planillaCSV) {
     cargarPlanilla(config.planillaCSV)
-      .then(render)
+      .then(function (items) { render(conIds(items)); })
       .catch(function (err) {
         console.warn("No se pudo leer la planilla, uso el menú de respaldo.", err);
-        render(fallback);
+        render(conIds(fallback));
       });
   } else {
-    render(fallback);
+    render(conIds(fallback));
   }
 })();

@@ -4,7 +4,8 @@
 */
 window.SMBRUT_CONFIG = {
   // Link de la planilla de Google Sheets publicada como CSV.
-  // Ver COMO-EDITAR-EL-MENU.md. Mientras esté vacío, se usa el menú de js/menu-data.js
+  // Solo se usa si no hay Supabase: con Supabase la carta sale de la tabla productos.
+  // Mientras esté vacío, se usa el menú de js/menu-data.js
   planillaCSV: "",
 
   instagram: "smbrut_",

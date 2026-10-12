@@ -1270,7 +1270,6 @@ button.btn--ghost { border: 1.5px solid var(--line); }
 .linea--canje .linea__detalle { color: var(--lima); font-weight: 600; }
 .linea--canje .linea__total { color: var(--lima); }
 .carrito__canje { margin: -0.4rem 0 0.2rem; color: var(--lima); font-size: 0.85rem; font-weight: 600; }
-.listo__aviso { margin-top: 1rem; text-align: left; }
 
 /* ---------- Armar hamburguesa ---------- */
 
@@ -1335,6 +1334,19 @@ button.btn--ghost { border: 1.5px solid var(--line); }
 }
 .listo__texto { max-width: 32ch; margin: 0.75rem auto 0; color: var(--muted); }
 .listo__texto strong { color: var(--ink); }
+.listo__total {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+.listo__total strong {
+  margin-left: 0.3rem;
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1.8rem;
+  font-variant-numeric: tabular-nums;
+}
 .listo__texto--demo,
 .hoja__listo.is-demo .listo__texto:not(.listo__texto--demo),
 .hoja__listo.is-demo [data-reabrir] { display: none; }
