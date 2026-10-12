@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>SMBRUT Panel</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0c0c0c">
+  <link rel="icon" type="image/png" href="img/ratita-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="panel">
+  <header class="panel__barra">
+    <img class="panel__logo" src="img/logo-smb-blanco.png" width="773" height="439" alt="SMBRUT">
+    <span class="panel__marca">Panel</span>
+    <button class="btn btn--ghost panel__clave" type="button" data-ir-clave hidden><i class="ph-bold ph-lock-key" aria-hidden="true"></i> <span>Contraseña</span></button>
+    <button class="btn btn--ghost panel__salir" type="button" data-salir hidden><i class="ph-bold ph-sign-out" aria-hidden="true"></i> Salir</button>
+  </header>
+
+  <!-- Ingreso -->
+  <main class="panel__ingreso" data-vista="ingreso" hidden>
+    <h1 class="panel__titulo">Hola, Santi</h1>
+    <p class="panel__bajada">Entrá con tu cuenta de administrador para sumarle estrellas a tus clientes.</p>
+    <form class="panel__form" data-form-ingreso novalidate>
+      <label class="campo">
+        <span class="campo__label">Mail</span>
+        <input class="campo__input" id="admin-email" name="email" type="email" autocomplete="username" autocapitalize="none" autocorrect="off" enterkeyhint="next" required>
+      </label>
+      <label class="campo">
+        <span class="campo__label">Contraseña</span>
+        <input class="campo__input" id="admin-clave" name="clave" type="password" autocomplete="current-password" enterkeyhint="go" required>
+      </label>
+      <p class="hoja__error" data-error-ingreso role="alert"></p>
+      <button class="btn btn--lima btn--bloque" type="submit">Entrar</button>
+      <p class="panel__demo" data-demo hidden>Versión de prueba. Entrá con <strong>santi@smbrut.com</strong> y la contraseña <strong>smbrut</strong>.</p>
+    </form>
+  </main>
+
+  <!-- Cambiar contraseña -->
+  <main class="panel__ingreso" data-vista="clave" hidden>
+    <h1 class="panel__titulo">Tu contraseña</h1>
+    <p class="panel__bajada">Cambiala cada tanto, sobre todo si alguien más la conoce.</p>
+    <form class="panel__form" data-form-clave novalidate>
+      <label class="campo">
+        <span class="campo__label">Contraseña actual</span>
+        <input class="campo__input" id="clave-actual" name="actual" type="password" autocomplete="current-password" enterkeyhint="next" required>
+      </label>
+      <label class="campo">
+        <span class="campo__label">Contraseña nueva</span>
+        <input class="campo__input" id="clave-nueva" name="nueva" type="password" autocomplete="new-password" minlength="6" enterkeyhint="next" required>
+      </label>
+      <label class="campo">
+        <span class="campo__label">Repetí la contraseña nueva</span>
+        <input class="campo__input" id="clave-repetir" name="repetir" type="password" autocomplete="new-password" minlength="6" enterkeyhint="done" required>
+      </label>
+      <p class="hoja__error" data-error-clave role="alert"></p>
+      <button class="btn btn--lima btn--bloque" type="submit">Cambiar contraseña</button>
+      <button class="btn btn--ghost btn--bloque" type="button" data-volver-panel>Volver al panel</button>
+    </form>
+  </main>
+
+  <!-- Panel -->
+  <main class="panel__app" data-vista="app" hidden>
+    <section class="panel__principal" aria-label="Sumar estrellas">
+      <form class="buscador" data-form-buscar role="search" novalidate>
+        <label class="buscador__label" for="buscar">Buscar cliente</label>
+        <div class="buscador__fila">
+          <i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i>
+          <input class="buscador__input" id="buscar" name="q" type="search" autocomplete="off" autocapitalize="characters" autocorrect="off" enterkeyhint="search" placeholder="ID (SMB-4K7QX), teléfono o nombre">
+          <button class="btn btn--lima" type="submit">Buscar</button>
+        </div>
+        <p class="buscador__ayuda" data-ayuda>El ID le aparece al cliente en su cuenta y llega en cada pedido por WhatsApp.</p>
+      </form>
+
+      <ul class="resultados" data-resultados hidden></ul>
+
+      <article class="cliente" data-cliente hidden>
+        <header class="cliente__cabeza">
+          <div class="cliente__id">
+            <p class="cliente__codigo" data-c-codigo></p>
+            <h2 class="cliente__nombre" data-c-nombre></h2>
+            <p class="cliente__tel" data-c-tel></p>
+          </div>
+          <div class="cliente__estrellas" aria-live="polite">
+            <i class="ph-bold ph-star" aria-hidden="true"></i>
+            <strong data-c-estrellas>0</strong>
+            <span data-c-estrellas-texto>estrellas</span>
+          </div>
+        </header>
+
+        <form class="sumar" data-form-sumar novalidate>
+          <div class="sumar__modo" role="radiogroup" aria-label="Qué querés cargar">
+            <label class="sumar__op"><input type="radio" name="modo" value="compra" checked> Compra</label>
+            <label class="sumar__op"><input type="radio" name="modo" value="ajuste"> Ajuste</label>
+          </div>
+
+          <!-- Compra: el monto define las estrellas -->
+          <div class="sumar__seccion" data-seccion="compra">
+            <label class="monto" for="monto">
+              <span class="campo__label">¿Cuánto gastó?</span>
+              <span class="monto__fila">
+                <span class="monto__signo" aria-hidden="true">$</span>
+                <input class="monto__input" id="monto" name="monto" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" placeholder="0">
+              </span>
+            </label>
+            <p class="monto__calculo" data-calculo></p>
+          </div>
+
+          <!-- Ajuste: corregir a mano -->
+          <div class="sumar__seccion" data-seccion="ajuste" hidden>
+            <div class="sumar__cantidad">
+              <button class="sumar__paso" type="button" data-paso="-1" aria-label="Una menos"><i class="ph-bold ph-minus" aria-hidden="true"></i></button>
+              <input class="sumar__numero" id="cantidad" name="cantidad" type="text" inputmode="numeric" value="+1" aria-label="Estrellas a sumar o restar">
+              <button class="sumar__paso" type="button" data-paso="1" aria-label="Una más"><i class="ph-bold ph-plus" aria-hidden="true"></i></button>
+            </div>
+            <p class="monto__calculo">Para corregir un error o regalar estrellas. Con menos, resta. Los canjes los hace el cliente desde su cuenta.</p>
+          </div>
+
+          <label class="campo sumar__motivo">
+            <span class="campo__label">Nota <em>(opcional)</em></span>
+            <input class="campo__input" id="motivo" name="motivo" type="text" maxlength="80" enterkeyhint="done" placeholder="Pedido del sábado, cumpleaños…">
+          </label>
+
+          <p class="hoja__error" data-error-sumar role="alert"></p>
+          <button class="btn btn--lima btn--bloque btn--grande" type="submit" data-confirmar>Escribí el monto</button>
+          <p class="sumar__ok" data-ok role="status"></p>
+        </form>
+
+        <div class="cliente__historial">
+          <section>
+            <h3 class="panel__sub">Sus estrellas</h3>
+            <ul class="movs" data-c-movs></ul>
+          </section>
+          <section>
+            <h3 class="panel__sub">Sus pedidos por la web</h3>
+            <ul class="peds" data-c-pedidos></ul>
+          </section>
+        </div>
+      </article>
+    </section>
+
+    <aside class="panel__lateral" aria-labelledby="recientes-t">
+      <h2 class="panel__sub" id="recientes-t">Últimos movimientos</h2>
+      <ul class="movs movs--global" data-recientes></ul>
+    </aside>
+  </main>
+
+  <script>window.SMBRUT_APP = "admin";</script>
+  <script src="js/config.js"></script>
+  <script src="js/datos.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

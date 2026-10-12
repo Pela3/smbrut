@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>SMBRUT · Hamburguesas</title>
-  <meta name="description" content="SMBRUT. Hamburguesas, papas, sandwiches, pizzas y empanadas. Mirá la carta.">
+  <meta name="description" content="SMBRUT. Hamburguesas, papas, sandwiches, pizzas y empanadas. Mirá la carta y pedí delivery.">
   <meta name="theme-color" content="#0c0c0c">
   <link rel="icon" type="image/png" href="img/ratita-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +17,9 @@
   <a class="skip" href="#carta">Ir a la carta</a>
 
   <header class="hero">
+    <button class="cuenta-btn" type="button" data-abrir-cuenta>
+      <i class="ph-bold ph-user" aria-hidden="true"></i> <span>Ingresar</span>
+    </button>
     <div class="hero__copy">
       <h1 class="hero__logo">
         <img src="img/logo-smb.png" width="809" height="549" alt="SMBRUT">
@@ -24,8 +27,8 @@
       <p class="hero__lead">Hamburguesas brutas.<br><span>Todas con papas.</span></p>
       <a class="hero__dir" data-hero-dir hidden target="_blank" rel="noopener"><i class="ph-bold ph-map-pin" aria-hidden="true"></i> <span></span></a>
       <div class="hero__actions">
-        <a class="btn btn--lima" href="#carta">Ver la carta <i class="ph-bold ph-arrow-down" aria-hidden="true"></i></a>
-        <a class="btn btn--ghost" data-whatsapp hidden target="_blank" rel="noopener"><i class="ph-bold ph-whatsapp-logo" aria-hidden="true"></i> Pedir por WhatsApp</a>
+        <a class="btn btn--lima" href="#carta" data-pedir><i class="ph-bold ph-moped" aria-hidden="true"></i> Pedir delivery</a>
+        <a class="btn btn--ghost" href="#carta">Ver la carta <i class="ph-bold ph-arrow-down" aria-hidden="true"></i></a>
         <a class="btn btn--ghost" data-instagram hidden target="_blank" rel="noopener"><i class="ph-bold ph-instagram-logo" aria-hidden="true"></i> <span data-instagram-handle></span></a>
       </div>
     </div>
@@ -33,6 +36,39 @@
       <img class="hero__rata" src="img/ratita.png" width="1198" height="1267" alt="">
     </div>
   </header>
+
+  <section class="casa" aria-labelledby="casa-t">
+    <div class="casa__texto">
+      <p class="casa__eyebrow"><i class="ph-bold ph-crown-simple" aria-hidden="true"></i> La hamburguesa de la casa</p>
+      <h2 class="casa__titulo" id="casa-t">Brut</h2>
+      <p class="casa__frase">Probala.</p>
+      <p class="casa__desc">Mermelada de bacon, cheddar, pepinillos y nuestra salsa brut, entre medallones de carne bien sellados.</p>
+      <a class="btn btn--lima casa__pedir" href="#plato-brut" data-ir-plato><i class="ph-bold ph-moped" aria-hidden="true"></i> <span data-casa-pedir>Pedila</span></a>
+    </div>
+
+    <figure class="casa__figura" data-casa>
+      <img class="casa__foto" src="img/brut-casa.jpg" width="1491" height="1055" alt="La Brut: medallones de carne con cheddar, pepinillos, mermelada de bacon y salsa brut.">
+      <!-- Cada ingrediente señala un punto de la foto (x, y en % de la foto). Las líneas las dibuja js/app.js -->
+      <svg class="casa__lineas" aria-hidden="true"></svg>
+      <figcaption>
+        <ul class="casa__ingredientes">
+          <li data-x="41.6" data-y="32.7">Pepinillos</li>
+          <li data-x="67" data-y="39.8">Cheddar</li>
+          <li data-x="79.1" data-y="49.3">Mermelada de bacon</li>
+          <li data-x="86.5" data-y="65.5">Medallón de carne</li>
+          <li data-x="51" data-y="66.3">Salsa brut</li>
+        </ul>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="vitrina" data-vitrina aria-roledescription="carrusel" aria-label="Nuestras hamburguesas" hidden>
+    <div class="vitrina__pista" data-vitrina-pista tabindex="0"></div>
+    <div class="vitrina__flechas">
+      <button class="vitrina__flecha" type="button" data-vitrina-mover="-1" aria-label="Foto anterior"><i class="ph-bold ph-arrow-left" aria-hidden="true"></i></button>
+      <button class="vitrina__flecha" type="button" data-vitrina-mover="1" aria-label="Foto siguiente"><i class="ph-bold ph-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </section>
 
   <nav class="tabs" aria-label="Categorías del menú">
     <div class="tabs__track" data-tabs>
@@ -61,6 +97,234 @@
     </div>
   </footer>
 
+  <div class="barra" data-barra inert>
+    <div class="barra__aviso">
+      <p><i class="ph-bold ph-hand-tap" aria-hidden="true"></i> Tocá el precio de lo que quieras sumar.</p>
+      <button class="barra__x" type="button" data-salir-pedido aria-label="Salir del pedido"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+    </div>
+    <button class="barra__ver" type="button" data-ver-pedido>
+      <span class="barra__cant" data-barra-cant>0</span>
+      <span class="barra__texto">Ver pedido</span>
+      <span class="barra__total" data-barra-total>$0</span>
+    </button>
+  </div>
+
+  <dialog class="hoja" data-carrito aria-labelledby="carrito-t">
+    <div class="hoja__asa" data-asa aria-hidden="true"></div>
+    <header class="hoja__cabeza">
+      <h2 class="hoja__titulo" id="carrito-t">Tu pedido</h2>
+      <button class="hoja__cerrar" type="button" data-cerrar aria-label="Cerrar"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+    </header>
+
+    <div class="hoja__panel" data-panel-pedido>
+      <div class="hoja__cuerpo">
+        <p class="carrito__vacio" data-vacio>Todavía no sumaste nada. Tocá el precio de un plato para agregarlo.</p>
+        <ul class="carrito__lista" data-lista></ul>
+        <button class="carrito__seguir" type="button" data-cerrar data-seguir><i class="ph-bold ph-plus" aria-hidden="true"></i> Sumar algo más</button>
+
+        <section class="carrito__bloque" aria-labelledby="entrega-t">
+          <h3 class="carrito__subtitulo" id="entrega-t">Entrega</h3>
+          <label class="campo">
+            <span class="campo__label">Domicilio</span>
+            <input class="campo__input" data-domicilio type="text" autocomplete="street-address" enterkeyhint="next" placeholder="Calle, número y entre calles" required>
+          </label>
+          <label class="campo">
+            <span class="campo__label">Aclaraciones <em>(opcional)</em></span>
+            <input class="campo__input" data-aclaraciones type="text" enterkeyhint="done" placeholder="Depto, timbre, sin cebolla…">
+          </label>
+        </section>
+
+        <fieldset class="carrito__bloque">
+          <legend class="carrito__subtitulo">Pago</legend>
+          <div class="opciones">
+            <label class="opcion">
+              <input type="radio" name="pago" value="Efectivo">
+              <i class="ph-bold ph-money" aria-hidden="true"></i>
+              <span>Efectivo</span>
+            </label>
+            <label class="opcion">
+              <input type="radio" name="pago" value="Transferencia">
+              <i class="ph-bold ph-bank" aria-hidden="true"></i>
+              <span>Transferencia</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="carrito__cliente" data-cliente></div>
+      </div>
+
+      <footer class="hoja__pie">
+        <p class="hoja__error" data-error role="alert"></p>
+        <div class="carrito__total">
+          <span>Total</span>
+          <strong data-total>$0</strong>
+        </div>
+        <p class="carrito__envio">El envío se coordina por WhatsApp.</p>
+        <p class="carrito__canje" data-aviso-canje hidden></p>
+        <button class="btn btn--lima btn--bloque btn--grande" type="button" data-finalizar>
+          <i class="ph-bold ph-whatsapp-logo" aria-hidden="true"></i> Finalizar pedido
+        </button>
+      </footer>
+    </div>
+
+    <div class="hoja__panel hoja__listo" data-panel-listo hidden>
+      <div class="hoja__cuerpo">
+        <img class="listo__rata" src="img/ratita.png" width="1198" height="1267" alt="" loading="lazy">
+        <p class="listo__titulo">¡Pedido armado!</p>
+        <p class="listo__texto">Te abrimos WhatsApp con todo el pedido. <strong>Mandá el mensaje</strong> para que SMBRUT lo confirme.</p>
+        <p class="listo__texto listo__texto--demo">Así le llegaría el pedido a SMBRUT por WhatsApp:</p>
+        <pre class="listo__mensaje" data-mensaje-demo hidden></pre>
+        <p class="hoja__error listo__aviso" data-listo-canje hidden></p>
+      </div>
+      <footer class="hoja__pie">
+        <a class="btn btn--ghost btn--bloque" data-reabrir target="_blank" rel="noopener"><i class="ph-bold ph-whatsapp-logo" aria-hidden="true"></i> No se abrió WhatsApp</a>
+        <button class="btn btn--lima btn--bloque" type="button" data-cerrar>Listo</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="hoja" data-plato aria-labelledby="plato-t">
+    <div class="hoja__asa" data-asa aria-hidden="true"></div>
+    <header class="hoja__cabeza">
+      <h2 class="hoja__titulo" id="plato-t" data-plato-nombre></h2>
+      <button class="hoja__cerrar" type="button" data-cerrar aria-label="Cerrar"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+    </header>
+    <form class="hoja__panel" data-form-plato novalidate>
+      <div class="hoja__cuerpo">
+        <p class="hoja__intro" data-plato-desc></p>
+
+        <fieldset class="carrito__bloque armado" data-plato-tamanos>
+          <legend class="carrito__subtitulo">Tamaño</legend>
+          <div class="opciones" data-tamanos></div>
+        </fieldset>
+
+        <fieldset class="carrito__bloque armado" data-plato-sacar>
+          <legend class="carrito__subtitulo">Sacale algo</legend>
+          <div class="ingredientes" data-ingredientes></div>
+        </fieldset>
+
+        <fieldset class="carrito__bloque armado" data-plato-extras>
+          <legend class="carrito__subtitulo">Sumale extras</legend>
+          <ul class="extras" data-extras></ul>
+        </fieldset>
+      </div>
+      <footer class="hoja__pie hoja__pie--fila">
+        <div class="stepper stepper--grande">
+          <button class="stepper__btn" type="button" data-plato-cant="-1" aria-label="Una menos"><i class="ph-bold ph-minus" aria-hidden="true"></i></button>
+          <span class="stepper__cant" data-plato-cantidad aria-live="polite">1</span>
+          <button class="stepper__btn" type="button" data-plato-cant="1" aria-label="Una más"><i class="ph-bold ph-plus" aria-hidden="true"></i></button>
+        </div>
+        <button class="btn btn--lima btn--grande armado__sumar" type="submit" data-plato-sumar>Agregar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog class="hoja" data-cuenta aria-labelledby="cuenta-t">
+    <div class="hoja__asa" data-asa aria-hidden="true"></div>
+    <header class="hoja__cabeza">
+      <h2 class="hoja__titulo" id="cuenta-t" data-cuenta-titulo>Ingresá</h2>
+      <button class="hoja__cerrar" type="button" data-cerrar aria-label="Cerrar"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+    </header>
+
+    <div class="hoja__cuerpo">
+      <section data-panel="acceso" hidden>
+        <p class="hoja__intro">Para pedir delivery necesitás una cuenta. Con tus pedidos sumás estrellas SMBRUT.</p>
+        <form data-form-acceso novalidate>
+          <label class="campo" data-solo-crear hidden>
+            <span class="campo__label">Nombre y apellido</span>
+            <input class="campo__input" name="nombre" type="text" autocomplete="name" enterkeyhint="next">
+          </label>
+          <label class="campo" data-solo-crear hidden>
+            <span class="campo__label">Teléfono</span>
+            <input class="campo__input" name="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="2246 123456" enterkeyhint="next">
+          </label>
+          <label class="campo">
+            <span class="campo__label">Mail</span>
+            <input class="campo__input" name="email" type="email" autocomplete="email" autocapitalize="none" autocorrect="off" enterkeyhint="next" required>
+          </label>
+          <label class="campo">
+            <span class="campo__label">Contraseña</span>
+            <input class="campo__input" name="clave" type="password" autocomplete="current-password" minlength="6" enterkeyhint="go" required>
+          </label>
+          <p class="hoja__error" data-error-acceso role="alert"></p>
+          <button class="btn btn--lima btn--bloque" type="submit">Ingresar</button>
+        </form>
+        <div class="hoja__links">
+          <button class="link" type="button" data-cambiar-modo>¿No tenés cuenta? Creá una</button>
+          <button class="link" type="button" data-olvide>Me olvidé la contraseña</button>
+        </div>
+      </section>
+
+      <section data-panel="datos" hidden>
+        <p class="hoja__intro">Con estos datos le llega tu pedido a SMBRUT.</p>
+        <form data-form-datos novalidate>
+          <label class="campo">
+            <span class="campo__label">Nombre y apellido</span>
+            <input class="campo__input" name="nombre" type="text" autocomplete="name" enterkeyhint="next" required>
+          </label>
+          <label class="campo">
+            <span class="campo__label">Teléfono</span>
+            <input class="campo__input" name="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="2246 123456" enterkeyhint="done" required>
+          </label>
+          <p class="hoja__error" data-error-datos role="alert"></p>
+          <button class="btn btn--lima btn--bloque" type="submit">Guardar</button>
+        </form>
+      </section>
+
+      <section data-panel="clave" hidden>
+        <form data-form-clave novalidate>
+          <label class="campo">
+            <span class="campo__label">Contraseña actual</span>
+            <input class="campo__input" name="actual" type="password" autocomplete="current-password" enterkeyhint="next" required>
+          </label>
+          <label class="campo">
+            <span class="campo__label">Contraseña nueva</span>
+            <input class="campo__input" name="nueva" type="password" autocomplete="new-password" minlength="6" enterkeyhint="next" required>
+          </label>
+          <label class="campo">
+            <span class="campo__label">Repetí la contraseña nueva</span>
+            <input class="campo__input" name="repetir" type="password" autocomplete="new-password" minlength="6" enterkeyhint="done" required>
+          </label>
+          <p class="hoja__error" data-error-clave role="alert"></p>
+          <button class="btn btn--lima btn--bloque" type="submit">Cambiar contraseña</button>
+        </form>
+        <div class="hoja__links">
+          <button class="link" type="button" data-volver-perfil>Volver a mi cuenta</button>
+        </div>
+      </section>
+
+      <section data-panel="perfil" hidden>
+        <div class="socio">
+          <img class="socio__rata" src="img/ratita.png" width="1198" height="1267" alt="" loading="lazy">
+          <p class="socio__etiqueta">Socio SMBRUT</p>
+          <p class="socio__nombre" data-socio-nombre></p>
+          <p class="socio__codigo"><span>Tu ID</span> <strong data-socio-codigo></strong></p>
+          <p class="socio__estrellas"><i class="ph-bold ph-star" aria-hidden="true"></i> <strong data-socio-estrellas>0</strong> <span data-socio-estrellas-texto>estrellas</span></p>
+          <p class="socio__proximo" data-socio-proximo></p>
+        </div>
+        <section class="premios" aria-labelledby="premios-t">
+          <h3 class="carrito__subtitulo" id="premios-t">Premios</h3>
+          <p class="premios__regla" data-premios-regla></p>
+          <ul class="premios__lista" data-premios></ul>
+          <p class="premios__regla">El premio se suma gratis a tu próximo pedido y las estrellas se descuentan al finalizarlo.</p>
+        </section>
+        <dl class="perfil__datos">
+          <div data-perfil-telefono hidden><dt>Teléfono</dt><dd></dd></div>
+          <div data-perfil-email hidden><dt>Mail</dt><dd></dd></div>
+          <div data-perfil-domicilio hidden><dt>Último domicilio</dt><dd></dd></div>
+        </dl>
+        <p class="perfil__ok" data-perfil-ok role="status"></p>
+        <div class="perfil__acciones">
+          <button class="btn btn--ghost btn--bloque" type="button" data-editar><i class="ph-bold ph-pencil-simple" aria-hidden="true"></i> Editar mis datos</button>
+          <button class="btn btn--ghost btn--bloque" type="button" data-cambiar-clave><i class="ph-bold ph-lock-key" aria-hidden="true"></i> Cambiar contraseña</button>
+        </div>
+        <div class="hoja__links">
+          <button class="link" type="button" data-salir>Cerrar sesión</button>
+        </div>
+      </section>
+    </div>
+  </dialog>
+
   <dialog class="visor" data-visor aria-label="Foto del plato">
     <form method="dialog" class="visor__cerrar"><button class="btn btn--ghost" aria-label="Cerrar"><i class="ph-bold ph-x" aria-hidden="true"></i></button></form>
     <img data-visor-img alt="">
@@ -69,6 +333,10 @@
 
   <script src="js/config.js"></script>
   <script src="js/menu-data.js"></script>
+  <script src="js/hoja.js"></script>
+  <script src="js/datos.js"></script>
+  <script src="js/cuenta.js"></script>
+  <script src="js/carrito.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

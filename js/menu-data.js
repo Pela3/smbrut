@@ -12,7 +12,7 @@ window.SMBRUT_MENU = [
   { categoria: "Hamburguesas", nombre: "Panal", descripcion: "Medallón de carne, cheddar, bacon con miel, salsa dulce", precio: "13000", precio_doble: "15000", disponible: "si", nuevo: "", foto: "" },
   { categoria: "Hamburguesas", nombre: "Brutcrispy", descripcion: "Medallón de carne, bacon, cheddar, cebolla crispy, salsa brut", precio: "13500", precio_doble: "15500", disponible: "si", nuevo: "", foto: "" },
   { categoria: "Hamburguesas", nombre: "Cuarto de Libra", descripcion: "Medallón de carne, mostaza, ketchup, cebolla cruda, cheddar", precio: "13000", precio_doble: "15000", disponible: "si", nuevo: "", foto: "" },
-  { categoria: "Hamburguesas", nombre: "Brut", descripcion: "Medallón de carne, mermelada de bacon, cheddar, pepinillos, salsa brut", precio: "13500", precio_doble: "15500", disponible: "si", nuevo: "", foto: "" },
+  { categoria: "Hamburguesas", nombre: "Brut", descripcion: "Medallón de carne, mermelada de bacon, cheddar, pepinillos, salsa brut", precio: "13500", precio_doble: "15500", disponible: "si", nuevo: "", foto: "brut.jpg" },
 
   { categoria: "Special", nombre: "Takis", descripcion: "Medallón de carne, cheddar, bacon, salsa picante, takis", precio: "14000", precio_doble: "16000", disponible: "si", nuevo: "", foto: "" },
   { categoria: "Special", nombre: "ABZ", descripcion: "Medallón de carne, queso dambo, bacon, cebolla caramelizada, salsa brut", precio: "13000", precio_doble: "15000", disponible: "si", nuevo: "", foto: "" },

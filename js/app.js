@@ -26,11 +26,6 @@
       a.textContent = "@" + handle;
       row.hidden = false;
     }
-    if (config.whatsapp) {
-      var wa = document.querySelector("[data-whatsapp]");
-      wa.href = "https://wa.me/" + String(config.whatsapp).replace(/\D/g, "");
-      wa.hidden = false;
-    }
     if (config.direccion) {
       var mapa = "https://www.google.com/maps/search/?api=1&query=" +
         encodeURIComponent(config.mapa || config.direccion);
@@ -116,10 +111,14 @@
     return n === "si" || n === "x" || n === "1" || n === "true";
   }
 
-  function precio(valor) {
+  function monto(valor) {
     var digits = String(valor || "").replace(/[^\d]/g, "");
-    if (!digits) return null;
-    return "$" + moneda.format(Number(digits));
+    return digits ? Number(digits) : null;
+  }
+
+  function precio(valor) {
+    var n = monto(valor);
+    return n ? "$" + moneda.format(n) : null;
   }
 
   // Acepta un link de Google Drive, un link directo a una imagen o un archivo de img/fotos/
@@ -155,10 +154,30 @@
     return orden.map(function (cat) { return { nombre: cat, items: grupos[cat] }; });
   }
 
-  function celdaPrecio(valor, etiqueta) {
+  // Con precio, la celda es un botón que suma el plato al pedido (ver js/carrito.js).
+  // tipo: "personalizable" (hamburguesas: se le sacan ingredientes o suman extras) o "extra"
+  function botonPrecio(item, variante, valor, tipo) {
     var p = precio(valor);
-    var cell = el("span", "plato__precio" + (p ? "" : " is-vacio"), p || "—");
-    if (etiqueta) cell.setAttribute("aria-label", etiqueta + ": " + (p || "no disponible"));
+    var btn = el("button", "plato__precio plato__add");
+    btn.type = "button";
+    btn.setAttribute("data-add", "");
+    btn.dataset.nombre = item.nombre;
+    btn.dataset.variante = variante;
+    btn.dataset.precio = monto(valor);
+    if (item.descripcion) btn.dataset.desc = item.descripcion;
+    if (tipo) btn.dataset.tipo = tipo;
+    btn.setAttribute("aria-label", "Sumar " + item.nombre + (variante ? " " + variante.toLowerCase() : "") + " al pedido, " + p);
+    var mas = el("i", "ph-bold ph-plus plato__mas");
+    mas.setAttribute("aria-hidden", "true");
+    btn.appendChild(mas);
+    btn.appendChild(document.createTextNode(p));
+    return btn;
+  }
+
+  function celdaPrecio(item, valor, etiqueta, tipo) {
+    if (precio(valor)) return botonPrecio(item, etiqueta, valor, tipo);
+    var cell = el("span", "plato__precio is-vacio", "—");
+    cell.setAttribute("aria-label", etiqueta + ": no disponible");
     return cell;
   }
 
@@ -208,6 +227,8 @@
   function renderCategoria(cat) {
     var dosPrecios = cat.items.some(function (i) { return precio(i.precio_doble); });
     var destacada = (config.destacadas || []).indexOf(cat.nombre) !== -1;
+    // Las hamburguesas (las que tienen simple y doble) se pueden personalizar
+    var tipo = dosPrecios ? "personalizable" : cat.nombre === (config.categoriaExtras || "Extras") ? "extra" : "";
 
     var section = el("section", "cat" + (destacada ? " cat--lima" : ""));
     section.id = slug(cat.nombre);
@@ -231,6 +252,7 @@
     var list = el("ul", "platos" + (dosPrecios ? " platos--dos" : ""));
     cat.items.forEach(function (item) {
       var li = el("li", "plato");
+      li.id = "plato-" + slug(item.nombre).slice(4);
       var src = fotoUrl(item.foto);
       if (src) li.appendChild(botonFoto(li, src, item.nombre));
       var info = el("div", "plato__info");
@@ -242,11 +264,12 @@
 
       var precios = el("div", "plato__precios");
       if (dosPrecios) {
-        precios.appendChild(celdaPrecio(item.precio, "Simple"));
-        precios.appendChild(celdaPrecio(item.precio_doble, "Doble"));
+        precios.appendChild(celdaPrecio(item, item.precio, "Simple", tipo));
+        precios.appendChild(celdaPrecio(item, item.precio_doble, "Doble", tipo));
+      } else if (precio(item.precio)) {
+        precios.appendChild(botonPrecio(item, "", item.precio, tipo));
       } else {
-        var p = precio(item.precio);
-        precios.appendChild(el("span", "plato__precio" + (p ? "" : " is-consultar"), p || "Consultar"));
+        precios.appendChild(el("span", "plato__precio is-consultar", "Consultar"));
       }
       li.appendChild(precios);
       list.appendChild(li);
@@ -276,7 +299,140 @@
     });
     $menu.appendChild(frag);
     observarSecciones();
+    renderVitrina(items.filter(disponible));
+    renderCasa(items.filter(disponible));
+    window.dispatchEvent(new CustomEvent("smbrut:menu"));
   }
+
+  /* ---------- Carrusel de hamburguesas ---------- */
+
+  var $vitrina = document.querySelector("[data-vitrina]");
+  var $pista = $vitrina.querySelector("[data-vitrina-pista]");
+
+  function renderVitrina(items) {
+    var porNombre = {};
+    items.forEach(function (i) { porNombre[normalizar(i.nombre)] = i; });
+    $pista.textContent = "";
+    var fotos = (config.vitrina || []).filter(function (v) { return porNombre[normalizar(v.nombre)]; });
+    $vitrina.hidden = !fotos.length;
+
+    fotos.forEach(function (v, n) {
+      var item = porNombre[normalizar(v.nombre)];
+      var slide = el("article", "vitrina__slide");
+      slide.setAttribute("aria-roledescription", "foto");
+      slide.setAttribute("aria-label", (n + 1) + " de " + fotos.length + ": " + item.nombre);
+
+      var img = el("img", "vitrina__foto");
+      img.src = v.foto;
+      img.alt = item.nombre;
+      img.loading = n < 2 ? "eager" : "lazy";
+      img.decoding = "async";
+      img.addEventListener("error", function () { slide.remove(); });
+      slide.appendChild(img);
+
+      var texto = el("div", "vitrina__texto");
+      texto.appendChild(el("h2", "vitrina__nombre", item.nombre));
+      if (item.descripcion) texto.appendChild(el("p", "vitrina__desc", item.descripcion));
+      var desde = precio(item.precio) || precio(item.precio_doble);
+      var ir = el("a", "btn btn--lima vitrina__pedir");
+      ir.href = "#plato-" + slug(item.nombre).slice(4);
+      ir.setAttribute("data-ir-plato", "");
+      ir.appendChild(document.createTextNode("Pedila" + (desde ? " · " + desde : "")));
+      texto.appendChild(ir);
+      slide.appendChild(texto);
+      $pista.appendChild(slide);
+    });
+  }
+
+  $vitrina.addEventListener("click", function (e) {
+    var flecha = e.target.closest("[data-vitrina-mover]");
+    if (!flecha) return;
+    var paso = $pista.clientWidth * 0.85 * Number(flecha.dataset.vitrinaMover);
+    $pista.scrollBy({ left: paso, behavior: "smooth" });
+  });
+
+  // "Pedila" (carrusel y hamburguesa de la casa) lleva al plato en la carta y lo resalta un momento
+  document.addEventListener("click", function (e) {
+    var ir = e.target.closest("[data-ir-plato]");
+    if (!ir) return;
+    e.preventDefault();
+    var plato = document.querySelector(ir.getAttribute("href"));
+    if (!plato) return;
+    plato.scrollIntoView({ behavior: "smooth", block: "center" });
+    plato.classList.remove("is-resaltado");
+    void plato.offsetWidth;
+    plato.classList.add("is-resaltado");
+    window.dispatchEvent(new CustomEvent("smbrut:pedir"));
+  });
+
+  /* ---------- Hamburguesa de la casa ---------- */
+
+  var $casa = document.querySelector("[data-casa]");
+
+  function renderCasa(items) {
+    var brut = items.filter(function (i) { return normalizar(i.nombre) === "brut"; })[0];
+    var desde = brut && (precio(brut.precio) || precio(brut.precio_doble));
+    document.querySelector("[data-casa-pedir]").textContent = "Pedila" + (desde ? " · " + desde : "");
+  }
+
+  // Une cada ingrediente con su punto en la foto. Se recalcula si cambia el tamaño
+  var FOTO_ANCHO = 0.7; // la foto ocupa el 70% de la figura
+
+  function dibujarCasa() {
+    if (!$casa) return;
+    var svg = $casa.querySelector(".casa__lineas");
+    var w = $casa.clientWidth, h = $casa.clientHeight;
+    if (!w || !h) return;
+    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    svg.textContent = "";
+    $casa.querySelectorAll(".casa__punto").forEach(function (p) { p.remove(); });
+
+    $casa.querySelectorAll(".casa__ingredientes li").forEach(function (li) {
+      var ax = Number(li.dataset.x) / 100 * w * FOTO_ANCHO;
+      var ay = Number(li.dataset.y) / 100 * h;
+      var lx = li.offsetLeft + li.parentNode.offsetLeft - 10;
+      var ly = li.offsetTop + li.parentNode.offsetTop + li.offsetHeight / 2;
+      var curva = Math.max(30, (lx - ax) * 0.45);
+      var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", "M" + ax + " " + ay + " C " + (ax + curva) + " " + ay + ", " + (lx - curva) + " " + ly + ", " + lx + " " + ly);
+      path.setAttribute("pathLength", "1");
+      svg.appendChild(path);
+
+      var punto = el("span", "casa__punto");
+      punto.setAttribute("aria-hidden", "true");
+      punto.style.setProperty("--x", ax + "px");
+      punto.style.setProperty("--y", ay + "px");
+      $casa.appendChild(punto);
+    });
+  }
+
+  if ($casa) {
+    dibujarCasa();
+    if ("ResizeObserver" in window) new ResizeObserver(dibujarCasa).observe($casa);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(dibujarCasa);
+  }
+
+  // Las líneas del diagrama se dibujan una vez, cuando la foto entra en pantalla
+  if ($casa && "IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    $casa.classList.add("is-esperando");
+    var obsCasa = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      $casa.classList.remove("is-esperando");
+      $casa.classList.add("is-dibujando");
+      obsCasa.disconnect();
+    }, { threshold: 0.35 });
+    obsCasa.observe($casa);
+  }
+
+  // Las flechas se apagan en los extremos
+  function pintarFlechas() {
+    var max = $pista.scrollWidth - $pista.clientWidth - 2;
+    $vitrina.querySelector('[data-vitrina-mover="-1"]').disabled = $pista.scrollLeft <= 2;
+    $vitrina.querySelector('[data-vitrina-mover="1"]').disabled = $pista.scrollLeft >= max;
+  }
+  $pista.addEventListener("scroll", pintarFlechas, { passive: true });
+  window.addEventListener("resize", pintarFlechas);
+  window.addEventListener("smbrut:menu", pintarFlechas);
 
   /* ---------- Pestañas ---------- */
 
