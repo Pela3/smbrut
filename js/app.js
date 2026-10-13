@@ -168,10 +168,16 @@
     if (item.descripcion) btn.dataset.desc = item.descripcion;
     if (tipo) btn.dataset.tipo = tipo;
     btn.setAttribute("aria-label", "Sumar " + item.nombre + (variante ? " " + variante.toLowerCase() : "") + " al pedido, " + p);
+    // En el celular el tamaño va escrito adentro del botón (en la compu están los títulos de columna)
+    if (variante) {
+      var v = el("span", "plato__variante", variante);
+      v.setAttribute("aria-hidden", "true");
+      btn.appendChild(v);
+    }
+    btn.appendChild(el("span", "plato__monto", p));
     var mas = el("i", "ph-bold ph-plus plato__mas");
     mas.setAttribute("aria-hidden", "true");
     btn.appendChild(mas);
-    btn.appendChild(document.createTextNode(p));
     return btn;
   }
 
@@ -301,7 +307,7 @@
     $menu.appendChild(frag);
     observarSecciones();
     renderVitrina(items.filter(disponible));
-    renderCasa(items.filter(disponible));
+    renderCasa();
     window.dispatchEvent(new CustomEvent("smbrut:menu"));
   }
 
@@ -370,27 +376,88 @@
 
   var $casa = document.querySelector("[data-casa]");
 
-  function renderCasa(items) {
-    var brut = items.filter(function (i) { return normalizar(i.nombre) === "brut"; })[0];
-    var desde = brut && (precio(brut.precio) || precio(brut.precio_doble));
-    document.querySelector("[data-casa-pedir]").textContent = "Pedila" + (desde ? " · " + desde : "");
+  var $casaPedido = document.querySelector("[data-casa-pedido]");
+  var $casaTamanos = $casaPedido.querySelector("[data-casa-tamanos]");
+  var casaElegida = "";
+
+  // Simple / Doble con los precios de la carta. El botón abre el armado de la Brut con ese tamaño
+  function renderCasa() {
+    var botones = Array.prototype.filter.call($menu.querySelectorAll("[data-add]"), function (b) {
+      return normalizar(b.dataset.nombre) === "brut";
+    });
+    $casaPedido.hidden = !botones.length;
+    $casaTamanos.textContent = "";
+    if (!botones.length) return;
+    if (!botones.some(function (b) { return b.dataset.variante === casaElegida; })) casaElegida = botones[0].dataset.variante;
+    $casaTamanos.hidden = botones.length < 2;
+
+    botones.forEach(function (b) {
+      var label = el("label", "tamano");
+      var r = el("input");
+      r.type = "radio";
+      r.name = "casa-tamano";
+      r.value = b.dataset.variante;
+      r.checked = b.dataset.variante === casaElegida;
+      label.appendChild(r);
+      label.appendChild(el("span", "tamano__nombre", b.dataset.variante));
+      label.appendChild(el("span", "tamano__precio", "$" + moneda.format(Number(b.dataset.precio))));
+      $casaTamanos.appendChild(label);
+    });
+    pintarCasaPedir();
   }
 
-  // Une cada ingrediente con su punto en la foto. Se recalcula si cambia el tamaño
-  var FOTO_ANCHO = 0.7; // la foto ocupa el 70% de la figura
+  function botonCasa() {
+    return Array.prototype.filter.call($menu.querySelectorAll("[data-add]"), function (b) {
+      return normalizar(b.dataset.nombre) === "brut" && b.dataset.variante === casaElegida;
+    })[0];
+  }
+
+  function pintarCasaPedir() {
+    var b = botonCasa();
+    if (!b) return;
+    $casaPedido.querySelector("[data-casa-pedir-texto]").textContent =
+      "Pedir " + b.dataset.nombre + (b.dataset.variante ? " " + b.dataset.variante.toLowerCase() : "");
+    $casaPedido.querySelector("[data-casa-pedir-precio]").textContent = "$" + moneda.format(Number(b.dataset.precio));
+  }
+
+  $casaTamanos.addEventListener("change", function (e) {
+    casaElegida = e.target.value;
+    pintarCasaPedir();
+  });
+
+  // Es lo mismo que tocar el precio en la carta: pide ingresar si hace falta y abre el armado
+  $casaPedido.querySelector("[data-casa-pedir]").addEventListener("click", function () {
+    var b = botonCasa();
+    if (b) b.click();
+  });
+
+  // Une cada ingrediente con su punto en la foto. Se recalcula si cambia el tamaño.
+  // En el celular no hay lugar para las líneas: los puntos llevan un número y los ingredientes
+  // van abajo de la foto como chips con el mismo número (ver .casa__figura en css/styles.css)
+  var casaChips = window.matchMedia("(max-width: 560px)");
 
   function dibujarCasa() {
     if (!$casa) return;
     var svg = $casa.querySelector(".casa__lineas");
-    var w = $casa.clientWidth, h = $casa.clientHeight;
+    var foto = $casa.querySelector(".casa__foto");
+    var w = foto.clientWidth, h = foto.clientHeight;
     if (!w || !h) return;
-    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    var cw = $casa.clientWidth, ch = $casa.clientHeight;
+    svg.setAttribute("viewBox", "0 0 " + cw + " " + ch);
     svg.textContent = "";
     $casa.querySelectorAll(".casa__punto").forEach(function (p) { p.remove(); });
 
-    $casa.querySelectorAll(".casa__ingredientes li").forEach(function (li) {
-      var ax = Number(li.dataset.x) / 100 * w * FOTO_ANCHO;
+    $casa.querySelectorAll(".casa__ingredientes li").forEach(function (li, n) {
+      var ax = Number(li.dataset.x) / 100 * w;
       var ay = Number(li.dataset.y) / 100 * h;
+      if (casaChips.matches) {
+        var numero = el("span", "casa__punto casa__punto--numero", n + 1);
+        numero.setAttribute("aria-hidden", "true");
+        numero.style.setProperty("--x", ax + "px");
+        numero.style.setProperty("--y", ay + "px");
+        $casa.appendChild(numero);
+        return;
+      }
       var lx = li.offsetLeft + li.parentNode.offsetLeft - 10;
       var ly = li.offsetTop + li.parentNode.offsetTop + li.offsetHeight / 2;
       var curva = Math.max(30, (lx - ax) * 0.45);
@@ -410,6 +477,7 @@
   if ($casa) {
     dibujarCasa();
     if ("ResizeObserver" in window) new ResizeObserver(dibujarCasa).observe($casa);
+    if (casaChips.addEventListener) casaChips.addEventListener("change", dibujarCasa);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(dibujarCasa);
   }
 

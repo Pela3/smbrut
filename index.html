@@ -19,6 +19,7 @@
   <header class="hero">
     <button class="cuenta-btn" type="button" data-abrir-cuenta>
       <i class="ph-bold ph-user" aria-hidden="true"></i> <span>Ingresar</span>
+      <b class="cuenta-btn__estrellas" data-cuenta-estrellas hidden></b>
     </button>
     <div class="hero__copy">
       <h1 class="hero__logo">
@@ -43,7 +44,15 @@
       <h2 class="casa__titulo" id="casa-t">Brut</h2>
       <p class="casa__frase">Probala.</p>
       <p class="casa__desc">Mermelada de bacon, cheddar, pepinillos y nuestra salsa brut, entre medallones de carne bien sellados.</p>
-      <a class="btn btn--lima casa__pedir" href="#plato-brut" data-ir-plato><i class="ph-bold ph-moped" aria-hidden="true"></i> <span data-casa-pedir>Pedila</span></a>
+      <!-- Tamaño y botón para pedirla directo. Los arma js/app.js con los precios de la carta -->
+      <div class="casa__pedido" data-casa-pedido hidden>
+        <div class="tamanos" role="radiogroup" aria-label="Tamaño de la Brut" data-casa-tamanos></div>
+        <button class="btn btn--lima btn--grande casa__pedir" type="button" data-casa-pedir>
+          <i class="ph-bold ph-plus-circle" aria-hidden="true"></i>
+          <span class="casa__pedir-texto" data-casa-pedir-texto>Pedir Brut</span>
+          <span class="casa__pedir-precio" data-casa-pedir-precio></span>
+        </button>
+      </div>
     </div>
 
     <figure class="casa__figura" data-casa>
@@ -52,7 +61,7 @@
       <svg class="casa__lineas" aria-hidden="true"></svg>
       <figcaption>
         <ul class="casa__ingredientes">
-          <li data-x="41.6" data-y="32.7">Pepinillos</li>
+          <li data-x="70" data-y="30.6">Pepinillos</li>
           <li data-x="67" data-y="39.8">Cheddar</li>
           <li data-x="79.1" data-y="49.3">Mermelada de bacon</li>
           <li data-x="86.5" data-y="65.5">Medallón de carne</li>
@@ -81,6 +90,24 @@
     <div data-menu></div>
   </main>
 
+  <!-- Club Brut: lo pinta js/cuenta.js según haya o no alguien ingresado -->
+  <section class="club" data-club aria-labelledby="club-t">
+    <div class="club__texto">
+      <p class="casa__eyebrow"><i class="ph-bold ph-star" aria-hidden="true"></i> Club Brut</p>
+      <h2 class="club__titulo" id="club-t">Cada pedido suma estrellas</h2>
+      <p class="club__regla" data-club-regla>Con cada pedido sumás estrellas y las canjeás por comida gratis.</p>
+    </div>
+    <div class="club__panel">
+      <div class="club__progreso" data-club-progreso hidden>
+        <p class="club__cuenta"><i class="ph-bold ph-star" aria-hidden="true"></i> <strong data-club-estrellas>0</strong> <span>estrellas</span></p>
+        <div class="club__barra" data-club-barra aria-hidden="true"></div>
+        <p class="club__falta" data-club-falta></p>
+      </div>
+      <ul class="club__premios" data-club-premios></ul>
+      <button class="btn btn--lima btn--bloque" type="button" data-club-btn>Crear mi cuenta</button>
+    </div>
+  </section>
+
   <footer class="pie">
     <img class="pie__rata" src="img/ratita.png" width="1198" height="1267" alt="" loading="lazy">
     <div class="pie__info">
@@ -104,7 +131,10 @@
     </div>
     <button class="barra__ver" type="button" data-ver-pedido>
       <span class="barra__cant" data-barra-cant>0</span>
-      <span class="barra__texto">Ver pedido</span>
+      <span class="barra__texto">
+        <span class="barra__titulo">Ver pedido</span>
+        <span class="barra__resumen" data-barra-resumen></span>
+      </span>
       <span class="barra__total" data-barra-total>$0</span>
     </button>
   </div>

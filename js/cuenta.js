@@ -115,9 +115,13 @@ window.SMBRUT_CUENTA = (function () {
   var pesosPorEstrella = Number((config.estrellas || {}).pesosPorEstrella) || 1000;
 
   function cargarPremios() {
-    datos.ajustes().then(function (a) { pesosPorEstrella = a.pesos_por_estrella || pesosPorEstrella; }).catch(function () {});
+    datos.ajustes().then(function (a) { pesosPorEstrella = a.pesos_por_estrella || pesosPorEstrella; pintarClub(); }).catch(function () {});
     return datos.premios()
-      .then(function (lista) { premios = lista || []; if (perfil()) pintarPremios(perfil().estrellas || 0); })
+      .then(function (lista) {
+        premios = lista || [];
+        if (perfil()) pintarPremios(perfil().estrellas || 0);
+        pintarClub();
+      })
       .catch(function (err) { console.warn("No se pudieron leer los premios.", err); });
   }
 
@@ -181,14 +185,67 @@ window.SMBRUT_CUENTA = (function () {
     document.querySelectorAll("[data-abrir-cuenta]").forEach(function (b) {
       b.querySelector("span").textContent = nombre || "Ingresar";
       b.classList.toggle("is-socio", !!nombre);
+      var est = b.querySelector("[data-cuenta-estrellas]");
+      if (est) {
+        est.hidden = !p;
+        est.textContent = p ? "★ " + (p.estrellas || 0) : "";
+      }
+    });
+    pintarClub();
+  }
+
+  /* ---------- Club Brut (sección de la página) ---------- */
+
+  var $club = document.querySelector("[data-club]");
+
+  function pintarClub() {
+    if (!$club) return;
+    var moneda = new Intl.NumberFormat("es-AR");
+    var p = perfil();
+    var n = p ? p.estrellas || 0 : 0;
+
+    $club.querySelector("[data-club-regla]").textContent =
+      "Sumás 1 estrella cada $" + moneda.format(pesosPorEstrella) + " que gastás y las canjeás por comida gratis.";
+
+    $club.querySelector("[data-club-progreso]").hidden = !p;
+    if (p) {
+      var proximo = premios.filter(function (c) { return c.estrellas > n; })[0];
+      $club.querySelector("[data-club-estrellas]").textContent = n;
+      $club.querySelector("[data-club-barra]").style.setProperty("--avance",
+        proximo ? Math.min(1, n / proximo.estrellas) : 1);
+      $club.querySelector("[data-club-falta]").textContent = proximo
+        ? "Te faltan " + (proximo.estrellas - n) + " para " + proximo.nombre.toLowerCase() + "."
+        : premios.length ? "Ya podés canjear cualquier premio." : "";
+    }
+
+    var $lista = $club.querySelector("[data-club-premios]");
+    $lista.textContent = "";
+    premios.forEach(function (c) {
+      var li = document.createElement("li");
+      li.className = "club__premio" + (p && n >= c.estrellas ? " is-listo" : "");
+      var nombre = document.createElement("span");
+      nombre.textContent = c.nombre;
+      var costo = document.createElement("strong");
+      costo.textContent = c.estrellas + " ★";
+      li.appendChild(nombre);
+      li.appendChild(costo);
+      $lista.appendChild(li);
+    });
+
+    $club.querySelector("[data-club-btn]").textContent = p ? "Ver premios y canjear" : "Crear mi cuenta";
+  }
+
+  if ($club) {
+    $club.querySelector("[data-club-btn]").addEventListener("click", function () {
+      abrir(perfil() ? null : "crear");
     });
   }
 
   /* ---------- Acciones ---------- */
 
-  function abrir() {
+  function abrir(modo) {
     if (!perfil()) {
-      modoAcceso = "ingresar";
+      modoAcceso = modo === "crear" ? "crear" : "ingresar";
       pintarModoAcceso();
     } else {
       // Puede que Santi le haya sumado estrellas desde la última vez

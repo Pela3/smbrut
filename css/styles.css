@@ -16,7 +16,7 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --gutter: clamp(16px, 5vw, 64px);
   --max: 1180px;
-  --precio-w: 5.25rem;
+  --precio-w: 6.6rem;
   --foto: 112px;
   --radio-foto: 12px;
 }
@@ -241,7 +241,42 @@ button.btn--ghost { border: 1.5px solid var(--line); }
   transform-origin: left center;
 }
 .casa__desc { margin: 1.25rem 0 0; max-width: 34ch; color: var(--muted); }
-.casa__pedir { margin-top: 1.5rem; }
+
+/* Simple / Doble y el botón grande con el precio adentro */
+.casa__pedido { display: grid; gap: 0.75rem; margin-top: 1.5rem; max-width: 380px; }
+
+.tamanos { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0.5rem; }
+.tamano {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.1rem;
+  padding: 0.6rem 0.5rem;
+  border-radius: 14px;
+  background: var(--bg-2);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), box-shadow 200ms ease, background-color 200ms ease, color 200ms ease;
+}
+.tamano:active { transform: scale(0.97); }
+.tamano input { position: absolute; opacity: 0; pointer-events: none; }
+.tamano__nombre {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.tamano__precio { color: var(--muted); font-weight: 600; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.tamano:has(input:checked) { background: rgba(180, 255, 0, 0.1); box-shadow: inset 0 0 0 2px var(--lima); }
+.tamano:has(input:checked) .tamano__nombre,
+.tamano:has(input:checked) .tamano__precio { color: var(--lima); }
+.tamano:has(input:focus-visible) { outline: 2px solid var(--lima); outline-offset: 3px; }
+
+.casa__pedir { width: 100%; padding: 0 1.25rem; }
+.casa__pedir-texto { flex: 1; text-align: left; }
+.casa__pedir-precio { font-variant-numeric: tabular-nums; }
 
 .casa__figura {
   position: relative;
@@ -354,6 +389,60 @@ button.btn--ghost { border: 1.5px solid var(--line); }
 @media (max-width: 760px) {
   .casa { grid-template-columns: 1fr; padding-top: 2.5rem; }
   .casa__figura { margin-right: calc(-0.5 * var(--gutter)); }
+  .casa__pedido { max-width: none; }
+}
+
+/* Celular angosto: foto entera, puntos numerados y los ingredientes abajo como chips */
+@media (max-width: 560px) {
+  /* Orden: título y descripción, foto, y abajo el tamaño con el botón */
+  .casa { gap: 0; }
+  .casa__texto { display: contents; }
+  .casa__figura { order: 1; aspect-ratio: auto; margin: 1rem calc(-1 * var(--gutter)) 0; counter-reset: ingrediente; }
+  .casa__pedido { order: 2; }
+  .casa__foto { position: relative; width: 100%; height: auto; aspect-ratio: 1491 / 1055; }
+  .casa__lineas { display: none; }
+  .casa__ingredientes {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0.25rem var(--gutter) 0;
+  }
+  .casa__ingredientes li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+    border-radius: 999px;
+    background: var(--bg-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: 1rem;
+    counter-increment: ingrediente;
+  }
+  .casa__ingredientes li::before {
+    content: counter(ingrediente);
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--lima);
+    color: var(--lima-ink);
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+  .casa__punto--numero {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin: -11px 0 0 -11px;
+    color: var(--lima-ink);
+    font-weight: 700;
+    font-size: 0.75rem;
+    line-height: 1;
+  }
 }
 
 /* ---------- Carrusel de hamburguesas ---------- */
@@ -682,38 +771,32 @@ button.btn--ghost { border: 1.5px solid var(--line); }
 .cat--lima .plato__precio.is-vacio,
 .cat--lima .plato__precio.is-consultar { color: var(--lima-muted); }
 
-/* Precio que suma al pedido. Fuera del modo pedido se ve como texto */
+/* Precio que suma al pedido: siempre se ve como botón, con su "+" */
+.platos--dos .plato__precios,
+.cat__cols { column-gap: 0.4rem; }
+
 .plato__add {
   position: relative;
   justify-self: end;
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.2rem;
+  gap: 0.3rem;
   min-height: 40px;
-  margin: -0.55rem -0.4rem;
-  padding: 0 0.4rem;
-  border: 1.5px solid transparent;
+  margin: -0.55rem 0;
+  padding: 0 0.6rem 0 0.75rem;
+  border: 1.5px solid var(--line);
   border-radius: 999px;
   background: transparent;
   cursor: pointer;
   transition: transform 140ms var(--ease-out), background-color 200ms ease, border-color 200ms ease, color 200ms ease;
 }
 .plato__add:active { transform: scale(0.95); }
-.plato__mas { display: none; font-size: 0.85em; }
-
-.is-pidiendo { --precio-w: 6.4rem; }
-.is-pidiendo .platos--dos .plato__precios,
-.is-pidiendo .cat__cols { column-gap: 0.4rem; }
+.plato__variante { display: none; }
+.plato__mas { font-size: 0.85em; color: var(--lima); }
+.cat--lima .plato__add { border-color: var(--lima-line); }
+.cat--lima .plato__mas { color: var(--lima-ink); }
 .plato__add[data-cant] { z-index: 1; }
-.is-pidiendo .plato__add {
-  margin: -0.55rem 0;
-  padding: 0 0.7rem 0 0.55rem;
-  border-color: var(--line);
-}
-.is-pidiendo .plato__mas { display: block; color: var(--lima); }
-.is-pidiendo .cat--lima .plato__add { border-color: var(--lima-line); }
-.is-pidiendo .cat--lima .plato__mas { color: var(--lima-ink); }
 
 /* Ya está en el pedido: se pinta y muestra cuántos hay */
 .plato__add[data-cant] { background: var(--lima); border-color: var(--lima); color: var(--lima-ink); }
@@ -740,8 +823,8 @@ button.btn--ghost { border: 1.5px solid var(--line); }
 .cat--lima .plato__add[data-cant]::after { box-shadow: 0 0 0 2px var(--lima); }
 
 @media (hover: hover) and (pointer: fine) {
-  .is-pidiendo .plato__add:not([data-cant]):hover { border-color: var(--lima); }
-  .is-pidiendo .cat--lima .plato__add:not([data-cant]):hover { border-color: var(--lima-ink); }
+  .plato__add:not([data-cant]):hover { border-color: var(--lima); }
+  .cat--lima .plato__add:not([data-cant]):hover { border-color: var(--lima-ink); }
 }
 
 /* Fotos: radio propio (12px) solo para imágenes; lo interactivo es pill, el resto sin bordes */
@@ -838,6 +921,94 @@ button.btn--ghost { border: 1.5px solid var(--line); }
   }
 }
 
+/* ---------- Club Brut ---------- */
+
+.club {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 5rem) var(--gutter);
+  border-top: 1px solid var(--line);
+}
+.club__titulo {
+  margin: 0.5rem 0 0;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(2.8rem, 8vw, 4.75rem);
+  line-height: 0.88;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.club__regla { margin: 1rem 0 0; max-width: 40ch; color: var(--muted); }
+
+.club__panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 20px;
+  background: var(--bg-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.club__cuenta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+.club__cuenta i { align-self: center; color: var(--lima); font-size: 1.3rem; }
+.club__cuenta strong {
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 2.6rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.club__barra {
+  height: 10px;
+  margin-top: 0.6rem;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.club__barra::before {
+  content: "";
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--lima);
+  transform-origin: left;
+  transform: scaleX(var(--avance, 0));
+  transition: transform 600ms var(--ease-out);
+}
+.club__falta { margin: 0.5rem 0 0; color: var(--lima); font-weight: 600; font-size: 0.92rem; }
+.club__falta:empty { display: none; }
+
+.club__premios { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.club__premio {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  background: var(--bg);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.club__premio strong { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.club__premio.is-listo { box-shadow: inset 0 0 0 1.5px var(--lima); }
+.club__premio.is-listo strong { color: var(--lima); }
+
+@media (max-width: 760px) {
+  .club { grid-template-columns: 1fr; }
+}
+
 /* ---------- Pie ---------- */
 
 .pie {
@@ -905,6 +1076,16 @@ button.btn--ghost { border: 1.5px solid var(--line); }
 .cuenta-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cuenta-btn i { font-size: 1.15em; }
 .cuenta-btn.is-socio i { color: var(--lima); }
+.cuenta-btn__estrellas {
+  flex: none;
+  margin-right: -0.6rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--lima);
+  color: var(--lima-ink);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
 .cuenta-btn:active { transform: scale(0.97); }
 @media (hover: hover) and (pointer: fine) {
   .cuenta-btn:hover { border-color: var(--ink); }
@@ -980,13 +1161,28 @@ button.btn--ghost { border: 1.5px solid var(--line); }
 }
 .barra__texto {
   flex: 1;
+  min-width: 0;
+  display: grid;
   text-align: left;
   font-family: var(--display);
   font-weight: 800;
   font-size: 1.35rem;
+  line-height: 1.05;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+.barra__resumen {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--body);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--lima-muted);
+}
+.barra__resumen:empty { display: none; }
 .barra__total { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
 
 .barra.is-vacia .barra__ver,
@@ -1517,7 +1713,7 @@ button.btn--ghost { border: 1.5px solid var(--line); }
 /* ---------- Celular ---------- */
 
 @media (max-width: 760px) {
-  :root { --precio-w: 4.6rem; --foto: 76px; }
+  :root { --foto: 76px; }
 
   /* Logo y ratita comparten la primera fila; el texto va abajo, sin pisarse */
   .hero {
@@ -1563,10 +1759,53 @@ button.btn--ghost { border: 1.5px solid var(--line); }
   .pie { grid-template-columns: 1fr; text-align: left; }
   .pie__rata { width: 160px; }
 
-  .is-pidiendo { --precio-w: 5.5rem; }
-  /* Con dos precios no entra el "+": alcanza con el borde de la pastilla */
-  .is-pidiendo .platos--dos .plato__mas { display: none; }
-  .is-pidiendo .platos--dos .plato__add { padding: 0 0.55rem; }
+  /* Hamburguesas: los dos precios van abajo, a lo ancho, con el tamaño escrito adentro */
+  .cat__cols { display: none; }
+  .platos--dos .plato,
+  .platos--dos .plato--foto { grid-template-columns: minmax(0, 1fr); gap: 0.85rem; }
+  .platos--dos .plato__precios { display: flex; gap: 0.5rem; }
+  .platos--dos .plato__precios > * { flex: 1 1 0; }
+  .platos--dos .plato__add {
+    justify-content: flex-start;
+    min-height: 46px;
+    margin: 0;
+    padding: 0 0.75rem 0 0.9rem;
+  }
+  .platos--dos .plato__variante {
+    display: block;
+    margin-right: auto;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .cat--lima .platos--dos .plato__variante { color: var(--lima-muted); }
+  .platos--dos .plato__add[data-cant] .plato__variante { color: inherit; opacity: 0.7; }
+  .platos--dos .plato__precio.is-vacio { visibility: hidden; }
+
+  /* Guarniciones, sándwiches, pizzas…: tarjetas en dos columnas */
+  .platos:not(.platos--dos) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.6rem;
+  }
+  .platos:not(.platos--dos) .plato,
+  .platos:not(.platos--dos) .plato--foto {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: space-between;
+    gap: 0.75rem;
+    padding: 0.9rem;
+    border: 0;
+    border-radius: 16px;
+    background: var(--bg-2);
+  }
+  .cat--lima .platos:not(.platos--dos) .plato { background: rgba(12, 12, 12, 0.08); }
+  .platos:not(.platos--dos) .plato__nombre { font-size: 1.35rem; }
+  .platos:not(.platos--dos) .plato__desc { font-size: 0.88rem; }
+  .platos:not(.platos--dos) .plato__precios { justify-content: flex-start; }
+  .platos:not(.platos--dos) .plato__add { margin: 0; }
+  .platos:not(.platos--dos) .plato__precio.is-consultar { text-align: left; }
 
   /* Las hojas suben desde abajo y se cierran arrastrando la manija */
   .hoja {
@@ -1606,9 +1845,9 @@ button.btn--ghost { border: 1.5px solid var(--line); }
 @keyframes hoja-baja { to { transform: translateY(100%); } }
 
 @media (max-width: 380px) {
-  :root { --precio-w: 4.2rem; --foto: 64px; }
-  .is-pidiendo { --precio-w: 5.2rem; }
+  :root { --foto: 64px; }
   .plato__precio { font-size: 0.95rem; }
+  .platos--dos .plato__add { padding: 0 0.6rem 0 0.7rem; }
   .barra__texto { font-size: 1.15rem; }
 }
 

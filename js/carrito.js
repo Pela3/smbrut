@@ -19,6 +19,7 @@ window.SMBRUT_CARRITO = (function () {
   var $barra = document.querySelector("[data-barra]");
   var $barraCant = $barra.querySelector("[data-barra-cant]");
   var $barraTotal = $barra.querySelector("[data-barra-total]");
+  var $barraResumen = $barra.querySelector("[data-barra-resumen]");
   var $hoja = document.querySelector("[data-carrito]");
   var $pedido = $hoja.querySelector("[data-panel-pedido]");
   var $listo = $hoja.querySelector("[data-panel-listo]");
@@ -156,6 +157,8 @@ window.SMBRUT_CARRITO = (function () {
     document.body.classList.toggle("is-pidiendo", visible);
     $barraCant.textContent = n;
     $barraTotal.textContent = plata(total());
+    // "1x Brut doble + 2x Papas": se ve qué hay en el pedido sin abrirlo
+    $barraResumen.textContent = items.map(function (i) { return i.cant + "x " + nombreItem(i); }).join(" + ");
   }
 
   function el(tag, cls, text) {
