@@ -431,11 +431,7 @@
     if (b) b.click();
   });
 
-  // Une cada ingrediente con su punto en la foto. Se recalcula si cambia el tamaño.
-  // En el celular no hay lugar para las líneas: los puntos llevan un número y los ingredientes
-  // van abajo de la foto como chips con el mismo número (ver .casa__figura en css/styles.css)
-  var casaChips = window.matchMedia("(max-width: 560px)");
-
+  // Une cada ingrediente con su punto en la foto. Se recalcula si cambia el tamaño
   function dibujarCasa() {
     if (!$casa) return;
     var svg = $casa.querySelector(".casa__lineas");
@@ -447,17 +443,9 @@
     svg.textContent = "";
     $casa.querySelectorAll(".casa__punto").forEach(function (p) { p.remove(); });
 
-    $casa.querySelectorAll(".casa__ingredientes li").forEach(function (li, n) {
+    $casa.querySelectorAll(".casa__ingredientes li").forEach(function (li) {
       var ax = Number(li.dataset.x) / 100 * w;
       var ay = Number(li.dataset.y) / 100 * h;
-      if (casaChips.matches) {
-        var numero = el("span", "casa__punto casa__punto--numero", n + 1);
-        numero.setAttribute("aria-hidden", "true");
-        numero.style.setProperty("--x", ax + "px");
-        numero.style.setProperty("--y", ay + "px");
-        $casa.appendChild(numero);
-        return;
-      }
       var lx = li.offsetLeft + li.parentNode.offsetLeft - 10;
       var ly = li.offsetTop + li.parentNode.offsetTop + li.offsetHeight / 2;
       var curva = Math.max(30, (lx - ax) * 0.45);
@@ -476,9 +464,7 @@
 
   if ($casa) {
     dibujarCasa();
-    if ("ResizeObserver" in window) new ResizeObserver(dibujarCasa).observe($casa);
-    if (casaChips.addEventListener) casaChips.addEventListener("change", dibujarCasa);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(dibujarCasa);
+    if ("ResizeObserver" in window) new ResizeObserver(dibujarCasa).observe($casa);    if (document.fonts && document.fonts.ready) document.fonts.ready.then(dibujarCasa);
   }
 
   // Las líneas del diagrama se dibujan una vez, cuando la foto entra en pantalla
