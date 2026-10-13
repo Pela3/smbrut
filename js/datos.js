@@ -242,6 +242,22 @@ window.SMBRUT_DATOS = (function () {
           return cliente.rpc("finalizar_pedido", { p_id: id }).then(resultado);
         });
       },
+      // La carta tal cual está en la base (precios como números), para editarla desde el panel
+      cartaAdmin: function () {
+        return conCliente(function () {
+          return cliente.from("productos").select("*").order("orden").order("id").then(resultado);
+        });
+      },
+      // campos: { precio, precio_doble, disponible }. Precio vacío (null) = "Consultar"
+      editarProducto: function (id, campos) {
+        return conCliente(function () {
+          return cliente.from("productos").update(campos).eq("id", id).select().then(resultado)
+            .then(function (filas) {
+              if (!filas || !filas.length) throw new Error("No se pudo guardar. Salí y volvé a entrar al panel.");
+              return filas[0];
+            });
+        });
+      },
       // Avisa cuando entra o cambia un pedido (en vivo)
       escucharPedidos: function (fn) {
         conCliente(function () {
@@ -263,11 +279,28 @@ window.SMBRUT_DATOS = (function () {
       return new Date(Date.now() - (diasAtras || 0) * 864e5).toISOString();
     }
 
-    // En el modo demo la carta sale de js/menu-data.js (con id = posición)
+    // En el modo demo la carta sale de js/menu-data.js (con id = posición),
+    // con los precios que se hayan cambiado desde el panel
     function productosDemo() {
+      var cambios = db().productos || {};
       return (window.SMBRUT_MENU || []).map(function (p, i) {
-        return Object.assign({ id: i + 1 }, p);
+        var fila = Object.assign({ id: i + 1 }, p);
+        var c = cambios[fila.id];
+        if (c) {
+          fila.precio = c.precio ? String(c.precio) : "";
+          fila.precio_doble = c.precio_doble ? String(c.precio_doble) : "";
+          fila.disponible = c.disponible ? "si" : "no";
+        }
+        return fila;
       });
+    }
+
+    function filaAdmin(p) {
+      return {
+        id: p.id, categoria: p.categoria, nombre: p.nombre, descripcion: p.descripcion || "",
+        precio: precioNum(p.precio), precio_doble: precioNum(p.precio_doble),
+        disponible: String(p.disponible).toLowerCase() !== "no"
+      };
     }
 
     function precioNum(v) {
@@ -614,6 +647,25 @@ window.SMBRUT_DATOS = (function () {
           p.estrellas_sumadas = n;
           guardar(d);
           return p;
+        });
+      },
+      cartaAdmin: function () {
+        return demora(function () {
+          exigirAdmin();
+          return productosDemo().map(filaAdmin);
+        });
+      },
+      editarProducto: function (id, campos) {
+        return demora(function () {
+          exigirAdmin();
+          var actual = productosDemo().filter(function (p) { return p.id === id; })[0];
+          if (!actual) throw new Error("Ese producto ya no existe.");
+          var fila = Object.assign(filaAdmin(actual), campos);
+          var d = db();
+          d.productos = d.productos || {};
+          d.productos[id] = { precio: fila.precio, precio_doble: fila.precio_doble, disponible: fila.disponible };
+          guardar(d);
+          return fila;
         });
       },
       escucharPedidos: function (fn) {

@@ -6,7 +6,7 @@
 
   var datos = window.SMBRUT_DATOS;
   var moneda = new Intl.NumberFormat("es-AR");
-  var fecha = new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  var fecha = new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
 
   var $vistas = document.querySelectorAll("[data-vista]");
   var $salir = document.querySelector("[data-salir]");
@@ -399,6 +399,7 @@
       s.hidden = s.getAttribute("data-seccion-app") !== tab;
     });
     if (tab === "clientes" && !actual) document.getElementById("buscar").focus();
+    if (tab === "precios") cargarCarta();
   }
 
   document.querySelectorAll("[data-tab]").forEach(function (b) {
@@ -553,6 +554,13 @@
     t.dateTime = p.creado;
     cabeza.appendChild(t);
     cabeza.appendChild(el("span", "pedido__pill", ESTADOS[p.estado] || p.estado));
+    var imprimir = el("button", "pedido__imprimir");
+    imprimir.type = "button";
+    imprimir.dataset.accion = "imprimir";
+    imprimir.dataset.id = p.id;
+    imprimir.setAttribute("aria-label", "Imprimir ticket del pedido " + numero(p.id));
+    imprimir.innerHTML = '<i class="ph-bold ph-printer" aria-hidden="true"></i> <span>Imprimir</span>';
+    cabeza.appendChild(imprimir);
     li.appendChild(cabeza);
 
     var quien = el("div", "pedido__cliente");
@@ -666,6 +674,10 @@
 
     var id = Number(b.dataset.id);
     var tarjeta = b.closest(".pedido");
+    if (accion === "imprimir") {
+      imprimirTicket(pedidos.filter(function (p) { return p.id === id; })[0]);
+      return;
+    }
     if (accion === "finalizar" || accion === "cancelar") {
       confirmando[id] = accion;
       pintarPedidos();
@@ -697,6 +709,249 @@
         var t = $pedidos.querySelector('.pedido[data-id="' + id + '"] .pedido__error');
         if (t) t.textContent = err.message;
       });
+  });
+
+  /* ---------- Ticket ---------- */
+
+  var config = window.SMBRUT_CONFIG || {};
+  var $ticket = document.querySelector("[data-ticket]");
+  var fechaTicket = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+
+  function renglon(izq, der, cls) {
+    var p = el("p", "ticket__renglon" + (cls ? " " + cls : ""));
+    p.appendChild(el("span", null, izq));
+    if (der != null) p.appendChild(el("span", null, der));
+    return p;
+  }
+
+  // Arma el ticket con el pedido y abre la ventana de impresión (en papel de 80 mm)
+  function imprimirTicket(p) {
+    if (!p) return;
+    $ticket.textContent = "";
+    $ticket.appendChild(el("p", "ticket__marca", "SMBRUT"));
+    if (config.direccion) $ticket.appendChild(el("p", "ticket__centro", config.direccion));
+    if (config.instagram) $ticket.appendChild(el("p", "ticket__centro", "@" + String(config.instagram).replace(/^@/, "")));
+    $ticket.appendChild(el("hr"));
+
+    $ticket.appendChild(el("p", "ticket__numero", "Pedido " + numero(p.id)));
+    var cuando2 = "";
+    try { cuando2 = fechaTicket.format(new Date(p.creado)); } catch (e) { /* sin fecha */ }
+    $ticket.appendChild(el("p", "ticket__centro", cuando2));
+    $ticket.appendChild(el("hr"));
+
+    if (p.nombre) $ticket.appendChild(renglon("Cliente", p.nombre));
+    if (p.codigo) $ticket.appendChild(renglon("ID", p.codigo));
+    if (p.telefono) $ticket.appendChild(renglon("Tel", p.telefono));
+    $ticket.appendChild(el("hr"));
+
+    (p.items || []).forEach(function (i) {
+      var nombre = i.cant + "x " + i.nombre + (i.variante ? " " + i.variante.toLowerCase() : "");
+      $ticket.appendChild(renglon(nombre, i.canje ? "Gratis" : "$" + moneda.format(i.precio * i.cant), "ticket__item"));
+      var mods = i.canje ? ["canje " + i.canje * i.cant + " estrellas"] : (i.cambios || []);
+      mods.forEach(function (m) { $ticket.appendChild(el("p", "ticket__mod", m)); });
+    });
+    $ticket.appendChild(el("hr"));
+
+    $ticket.appendChild(renglon("TOTAL", "$" + moneda.format(p.total), "ticket__total"));
+    if (p.pago) $ticket.appendChild(renglon("Pago", p.pago));
+    if (p.canje_estrellas) $ticket.appendChild(renglon("Canjea", estrellas(p.canje_estrellas)));
+    $ticket.appendChild(el("hr"));
+
+    if (p.domicilio) {
+      $ticket.appendChild(el("p", "ticket__titulo", "Entrega"));
+      $ticket.appendChild(el("p", null, p.domicilio));
+    }
+    if (p.aclaraciones) $ticket.appendChild(el("p", null, p.aclaraciones));
+    if (p.domicilio || p.aclaraciones) $ticket.appendChild(el("hr"));
+
+    var suma = p.estado === "finalizado" ? p.estrellas_sumadas : estrellasPorTotal(p.total);
+    if (suma) $ticket.appendChild(el("p", "ticket__centro", "Con este pedido sumás " + estrellas(suma)));
+    $ticket.appendChild(el("p", "ticket__centro ticket__gracias", "¡Gracias por elegir SMBRUT!"));
+
+    window.print();
+  }
+
+  /* ---------- Precios ---------- */
+
+  var $precios = document.querySelector("[data-precios]");
+  var $preciosEstado = document.querySelector("[data-precios-estado]");
+  var $preciosFiltro = document.querySelector("[data-precios-filtro]");
+  var carta = [];
+
+  function plata(n) {
+    return n ? moneda.format(n) : "";
+  }
+
+  function leerPrecio(input) {
+    return Number(String(input.value).replace(/\D/g, "")) || null;
+  }
+
+  function cargarCarta() {
+    if (carta.length) { pintarCarta(); return; }
+    $preciosEstado.textContent = "Cargando la carta…";
+    $preciosEstado.hidden = false;
+    datos.cartaAdmin()
+      .then(function (filas) {
+        carta = filas;
+        pintarCarta();
+      })
+      .catch(function (err) {
+        $preciosEstado.textContent = "No pudimos cargar la carta: " + err.message;
+      });
+  }
+
+  function campoPrecio(etiqueta, nombre, valor, ariaNombre) {
+    var label = el("label", "precio__campo");
+    label.appendChild(el("span", "precio__etiqueta", etiqueta));
+    var fila = el("span", "precio__fila");
+    fila.appendChild(el("span", "precio__signo", "$"));
+    var input = el("input", "precio__input");
+    input.name = nombre;
+    input.type = "text";
+    input.inputMode = "numeric";
+    input.autocomplete = "off";
+    input.placeholder = "Consultar";
+    input.value = plata(valor);
+    input.setAttribute("aria-label", "Precio " + etiqueta.toLowerCase() + " de " + ariaNombre);
+    fila.appendChild(input);
+    label.appendChild(fila);
+    return label;
+  }
+
+  function formPrecio(p, dosPrecios) {
+    var form = el("form", "precio" + (p.disponible ? "" : " is-oculto"));
+    form.noValidate = true;
+    form.dataset.id = p.id;
+    form.dataset.busqueda = (p.nombre + " " + p.categoria).toLowerCase();
+
+    var nombre = el("div", "precio__nombre");
+    nombre.appendChild(el("strong", null, p.nombre));
+    if (p.descripcion) nombre.appendChild(el("span", null, p.descripcion));
+    form.appendChild(nombre);
+
+    var campos = el("div", "precio__campos");
+    campos.appendChild(campoPrecio(dosPrecios ? "Simple" : "Precio", "precio", p.precio, p.nombre));
+    if (dosPrecios) campos.appendChild(campoPrecio("Doble", "precio_doble", p.precio_doble, p.nombre));
+    form.appendChild(campos);
+
+    var pie = el("div", "precio__pie");
+    var toggle = el("label", "precio__toggle");
+    var check = el("input");
+    check.type = "checkbox";
+    check.name = "disponible";
+    check.checked = p.disponible;
+    toggle.appendChild(check);
+    toggle.appendChild(el("span", null, "En la carta"));
+    pie.appendChild(toggle);
+    pie.appendChild(el("span", "precio__aviso", ""));
+    var guardar = el("button", "btn btn--lima precio__guardar", "Guardar");
+    guardar.type = "submit";
+    guardar.disabled = true;
+    pie.appendChild(guardar);
+    form.appendChild(pie);
+    return form;
+  }
+
+  function pintarCarta() {
+    $precios.textContent = "";
+    var orden = [], grupos = {};
+    carta.forEach(function (p) {
+      if (!grupos[p.categoria]) { grupos[p.categoria] = []; orden.push(p.categoria); }
+      grupos[p.categoria].push(p);
+    });
+    orden.forEach(function (cat) {
+      var dosPrecios = grupos[cat].some(function (p) { return p.precio_doble; });
+      var sec = el("section", "precios__cat");
+      sec.appendChild(el("h2", "panel__sub", cat));
+      var lista = el("div", "precios__lista");
+      grupos[cat].forEach(function (p) { lista.appendChild(formPrecio(p, dosPrecios)); });
+      sec.appendChild(lista);
+      $precios.appendChild(sec);
+    });
+    $preciosEstado.hidden = carta.length > 0;
+    $preciosEstado.textContent = "La carta está vacía.";
+    filtrarCarta();
+  }
+
+  function filtrarCarta() {
+    var q = $preciosFiltro.value.trim().toLowerCase();
+    $precios.querySelectorAll(".precios__cat").forEach(function (sec) {
+      var alguno = false;
+      sec.querySelectorAll(".precio").forEach(function (f) {
+        var ve = !q || f.dataset.busqueda.indexOf(q) !== -1;
+        f.hidden = !ve;
+        if (ve) alguno = true;
+      });
+      sec.hidden = !alguno;
+    });
+  }
+
+  $preciosFiltro.addEventListener("input", filtrarCarta);
+
+  function producto(id) {
+    return carta.filter(function (p) { return p.id === id; })[0];
+  }
+
+  // Qué cambió en el formulario respecto de lo guardado
+  function cambiosDe(form) {
+    var p = producto(Number(form.dataset.id));
+    var c = {};
+    var precio = leerPrecio(form.precio);
+    if (precio !== (p.precio || null)) c.precio = precio;
+    if (form.precio_doble) {
+      var doble = leerPrecio(form.precio_doble);
+      if (doble !== (p.precio_doble || null)) c.precio_doble = doble;
+    }
+    if (form.disponible.checked !== p.disponible) c.disponible = form.disponible.checked;
+    return c;
+  }
+
+  $precios.addEventListener("input", function (e) {
+    var form = e.target.closest(".precio");
+    if (!form) return;
+    // Puntos de miles mientras se escribe
+    if (e.target.classList.contains("precio__input")) {
+      var n = leerPrecio(e.target);
+      e.target.value = plata(n);
+    }
+    var hay = Object.keys(cambiosDe(form)).length > 0;
+    form.querySelector(".precio__guardar").disabled = !hay;
+    form.classList.toggle("is-cambiado", hay);
+    form.querySelector(".precio__aviso").textContent = "";
+    form.classList.remove("is-error");
+  });
+
+  $precios.addEventListener("change", function (e) {
+    if (e.target.name === "disponible") e.target.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+
+  $precios.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var form = e.target;
+    var id = Number(form.dataset.id);
+    var c = cambiosDe(form);
+    if (!Object.keys(c).length) return;
+    var aviso = form.querySelector(".precio__aviso");
+    var boton = form.querySelector(".precio__guardar");
+    boton.disabled = true;
+    boton.textContent = "Guardando…";
+    datos.editarProducto(id, c)
+      .then(function (fila) {
+        carta = carta.map(function (p) {
+          return p.id === id ? Object.assign({}, p, {
+            precio: fila.precio, precio_doble: fila.precio_doble, disponible: fila.disponible
+          }) : p;
+        });
+        form.classList.remove("is-cambiado");
+        form.classList.toggle("is-oculto", !fila.disponible);
+        aviso.textContent = "Guardado ✓";
+      })
+      .catch(function (err) {
+        form.classList.add("is-error");
+        aviso.textContent = err.message;
+        boton.disabled = false;
+      })
+      .then(function () { boton.textContent = "Guardar"; });
   });
 
   // "hace 5 min" se mantiene al día

@@ -40,7 +40,8 @@ window.SMBRUT_CONFIG = {
   direccion: "Calle 17 y 123, Santa Teresita",
   // Cómo buscar el local en Google Maps (para el botón "Cómo llegar")
   mapa: "Calle 17 y 123, Santa Teresita, Buenos Aires, Argentina",
-  horarios: "",
+  // Cada \n es un renglón nuevo en el pie de la página
+  horarios: "Lun a vie · 10:30 a 14:00\nMié a lun · 20:00 a 00:00",
 
   // Texto que aparece debajo del título de cada categoría (la clave es el nombre de la categoría)
   notas: {

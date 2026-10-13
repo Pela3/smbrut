@@ -617,6 +617,185 @@
 .ped__items { margin: 0; font-weight: 600; font-size: 0.95rem; }
 .ped__meta { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.85rem; }
 
+/* ---------- Imprimir (botón en cada pedido) ---------- */
+
+.pedido__imprimir {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 200ms ease, box-shadow 200ms ease, transform 140ms var(--ease-out);
+}
+.pedido__imprimir:active { transform: scale(0.96); }
+@media (hover: hover) and (pointer: fine) {
+  .pedido__imprimir:hover { color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+}
+@media (max-width: 420px) {
+  .pedido__imprimir span { display: none; }
+  .pedido__imprimir { width: 36px; padding: 0; justify-content: center; }
+}
+
+/* ---------- Precios ---------- */
+
+.precios[hidden] { display: none; }
+.precios { display: grid; gap: 1.25rem; }
+.precios__ayuda { margin: 0; max-width: 62ch; color: var(--muted); }
+.precios__ayuda strong { color: var(--ink); }
+.precios__buscar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 420px;
+  padding-left: 1rem;
+  border-radius: 999px;
+  background: var(--bg-2);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  color: var(--muted);
+}
+.precios__buscar .buscador__input { border: 0; background: transparent; box-shadow: none; padding-left: 0; }
+.precios__cats { display: grid; gap: 2rem; }
+.precios__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 0.75rem;
+}
+
+.precio {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  background: var(--bg-2);
+  box-shadow: 0 0 0 1px var(--line);
+  transition: box-shadow 200ms ease, opacity 200ms ease;
+}
+.precio.is-cambiado { box-shadow: 0 0 0 2px var(--lima); }
+.precio.is-error { box-shadow: 0 0 0 2px var(--resta); }
+.precio.is-oculto:not(.is-cambiado) { opacity: 0.55; }
+
+.precio__nombre { display: grid; gap: 0.15rem; min-width: 0; }
+.precio__nombre strong {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 1.45rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.precio__nombre span { color: var(--muted); font-size: 0.85rem; line-height: 1.35; }
+
+.precio__campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.6rem; }
+.precio__campo { display: grid; gap: 0.3rem; }
+.precio__etiqueta { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.precio__fila {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 48px;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: box-shadow 200ms ease;
+}
+.precio__fila:focus-within { box-shadow: inset 0 0 0 1.5px var(--lima); }
+.precio__signo { color: var(--muted); font-weight: 700; }
+.precio__input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.precio__input::placeholder { color: #6b6b66; font-weight: 500; font-size: 1rem; }
+
+.precio__pie { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.precio__toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 40px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.precio__toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.precio__toggle::before {
+  content: "";
+  width: 40px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--line);
+  transition: background-color 200ms ease;
+}
+.precio__toggle::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 999px;
+  background: var(--ink);
+  transition: transform 200ms var(--ease-out);
+}
+.precio__toggle:has(input:checked)::before { background: var(--lima); }
+.precio__toggle:has(input:checked)::after { transform: translateX(16px); background: var(--lima-ink); }
+.precio__toggle:has(input:focus-visible) { outline: 2px solid var(--lima); outline-offset: 3px; border-radius: 8px; }
+.precio__aviso { flex: 1; min-width: 0; color: var(--lima); font-weight: 600; font-size: 0.88rem; text-align: right; }
+.precio.is-error .precio__aviso { color: var(--resta); }
+.precio__guardar { min-height: 40px; padding: 0 1.1rem; }
+
+/* ---------- Ticket impreso ---------- */
+
+.ticket { display: none; }
+
+@media print {
+  @page { size: 80mm auto; margin: 0; }
+  html, body.panel { background: #fff !important; color: #000 !important; min-height: 0; }
+  body.panel > *:not(.ticket) { display: none !important; }
+  .ticket {
+    display: block;
+    width: 72mm;
+    margin: 0 auto;
+    padding: 4mm 0 8mm;
+    color: #000;
+    font-family: "Courier New", ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  .ticket p { margin: 0; overflow-wrap: anywhere; }
+  .ticket hr { margin: 2.5mm 0; border: 0; border-top: 1px dashed #000; }
+  .ticket__marca { font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 900; font-size: 30px; line-height: 1; text-align: center; letter-spacing: 0.04em; }
+  .ticket__centro { text-align: center; }
+  .ticket__numero { font-weight: 700; font-size: 18px; text-align: center; }
+  .ticket__titulo { font-weight: 700; text-transform: uppercase; }
+  .ticket__renglon { display: flex; justify-content: space-between; gap: 3mm; }
+  .ticket__renglon span:last-child { text-align: right; }
+  .ticket__item span:last-child,
+  .ticket__total span:last-child { white-space: nowrap; }
+  .ticket__renglon span:first-child { min-width: 0; }
+  .ticket__item { font-weight: 700; margin-top: 1mm !important; }
+  .ticket__mod { padding-left: 4mm; font-size: 11px; }
+  .ticket__total { font-weight: 700; font-size: 16px; }
+  .ticket__gracias { margin-top: 2mm !important; font-weight: 700; }
+}
+
 /* ---------- Celular ---------- */
 
 @media (max-width: 900px) {

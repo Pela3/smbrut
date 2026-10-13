@@ -73,7 +73,21 @@
       <button class="panel__tab" type="button" data-tab="clientes">
         <i class="ph-bold ph-star" aria-hidden="true"></i> Clientes<span class="panel__tab-extra"> y estrellas</span>
       </button>
+      <button class="panel__tab" type="button" data-tab="precios">
+        <i class="ph-bold ph-tag" aria-hidden="true"></i> Precios
+      </button>
     </nav>
+
+    <!-- Precios: Santi cambia precios y saca de la carta lo que no tiene -->
+    <section class="precios" data-seccion-app="precios" aria-label="Precios" hidden>
+      <p class="precios__ayuda">Cambiá el precio y tocá <strong>Guardar</strong>: la web lo muestra al toque. Si dejás un precio vacío, en la web dice "Consultar". Apagá <strong>En la carta</strong> para esconder lo que no tenés.</p>
+      <div class="precios__buscar">
+        <i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i>
+        <input class="buscador__input" type="search" data-precios-filtro autocomplete="off" placeholder="Buscar en la carta" aria-label="Buscar en la carta">
+      </div>
+      <p class="pedidos__vacio" data-precios-estado>Cargando la carta…</p>
+      <div class="precios__cats" data-precios></div>
+    </section>
 
     <!-- Pedidos -->
     <section class="pedidos" data-seccion-app="pedidos" aria-label="Pedidos">
@@ -176,8 +190,12 @@
     </div>
   </main>
 
+  <!-- Ticket para imprimir: lo arma js/admin.js y solo se ve al imprimir -->
+  <div class="ticket" data-ticket aria-hidden="true"></div>
+
   <script>window.SMBRUT_APP = "admin";</script>
   <script src="js/config.js"></script>
+  <script src="js/menu-data.js"></script>
   <script src="js/datos.js"></script>
   <script src="js/admin.js"></script>
 </body>
