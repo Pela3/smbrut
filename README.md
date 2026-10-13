@@ -14,7 +14,7 @@ Página web con la carta de **SMBRUT**: hamburguesas, papas, sandwiches, pizzas 
 - **Pedir delivery:** las hamburguesas se pueden armar (sacar ingredientes, sumar extras de la categoría Extras); el resto se toca el precio para sumarlo, se ve el total y al finalizar el pedido llega al WhatsApp del local con el ID del cliente, lo que pidió, el total, el domicilio y cómo paga.
 - **Cuenta de cliente:** para pedir hay que tener cuenta (mail y contraseña). Cada cliente tiene su ID de socio (`SMB-XXXXX`) y sus estrellas, y canjea premios desde su cuenta.
 - **Pedidos seguros:** cada pedido se guarda en la base con un número y el total lo calcula la base, no el celular del cliente.
-- **Panel de Santi** (`admin.html`): ve los pedidos en vivo, les cambia el estado (pagado, entregado, cancelado) y al finalizarlos le suma las estrellas al cliente. También carga compras del local.
+- **Panel de Santi** (`admin.html`): ve los pedidos en vivo, les cambia el estado (pagado, entregado, cancelado), imprime el ticket de cada pedido y al finalizarlos le suma las estrellas al cliente. También carga compras del local y cambia los precios de la carta.
 - Botones a Instagram, WhatsApp y "Cómo llegar" (Google Maps).
 - Se ve bien en el celular, que es donde la va a mirar casi todo el mundo.
 
@@ -42,7 +42,8 @@ Para verla en la compu, abrí `index.html` en el navegador.
 
 ## Cambiar el menú o los precios
 
-- **Precios y platos:** se editan en Supabase, en la tabla `productos`. Los pasos están en [COMO-EDITAR-EL-MENU.md](COMO-EDITAR-EL-MENU.md). (`js/menu-data.js` queda solo como respaldo y para el modo demo.)
+- **Precios:** desde el panel, pestaña **Precios**.
+- **Platos nuevos, nombres, fotos:** se editan en Supabase, en la tabla `productos`. Los pasos están en [COMO-EDITAR-EL-MENU.md](COMO-EDITAR-EL-MENU.md). (`js/menu-data.js` queda solo como respaldo y para el modo demo.)
 - **Datos del local:** se editan en `js/config.js`. Si un dato queda vacío (`""`), no se muestra.
 - **WhatsApp de los pedidos, cuentas y estrellas:** ver [COMO-ACTIVAR-CUENTAS.md](COMO-ACTIVAR-CUENTAS.md).
 

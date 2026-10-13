@@ -4,7 +4,13 @@ La carta de la web sale de la base de datos (Supabase), de la tabla **productos*
 
 Los precios de la tabla son los que valen: cuando un cliente hace un pedido, el total se calcula con estos precios, no con lo que muestra su celular.
 
-## Dónde se edita
+## Lo más fácil: desde el panel
+
+**Precios y "no hay por hoy"** se cambian desde el panel (`admin.html`), en la pestaña **Precios**: cambiás el número, tocás **Guardar** y listo. El interruptor **En la carta** saca un plato de la web sin borrarlo.
+
+Para todo lo demás (agregar platos, cambiar nombres, descripciones, fotos u orden) se usa la tabla, como se explica abajo.
+
+## Dónde se edita (la tabla)
 
 1. Entrá a [supabase.com](https://supabase.com) → tu proyecto → **Table Editor** → **productos**.
 2. Hacé doble clic en la celda que quieras cambiar, escribí el valor nuevo y apretá Enter.
