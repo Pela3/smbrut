@@ -33,7 +33,9 @@ html {
   scrollbar-color: #3a3a3a var(--bg);
 }
 
-/* Con una hoja abierta, la página de atrás no se mueve */
+/* Con una hoja abierta, la página de atrás no se mueve.
+   El lugar de la barra de scroll queda reservado: si no, al ocultarse todo se corre a la derecha */
+html { scrollbar-gutter: stable; }
 html:has(.hoja[open]) { overflow: hidden; }
 
 button, a, label { touch-action: manipulation; }
@@ -405,6 +407,7 @@ button.btn--ghost { border: 1.5px solid var(--line); }
     position: static;
     flex-direction: row;
     flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 0.45rem;
     padding: 0.25rem var(--gutter) 0;
   }
