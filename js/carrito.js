@@ -423,6 +423,10 @@ window.SMBRUT_CARRITO = (function () {
         $listo.hidden = false;
         // Las estrellas del canje ya se descontaron en la base
         datos.refrescar();
+        // Va directo a WhatsApp con el mensaje listo. Se usa la misma pestaña porque,
+        // después de esperar a la base, el navegador bloquea abrir una ventana nueva.
+        // Si vuelve a la web, el botón "Mandar por WhatsApp" queda de respaldo
+        if (ultimoLink && !config.demo) window.location.href = ultimoLink;
       })
       .catch(function (err) {
         error(err.message || "No pudimos mandar el pedido. Probá de nuevo.");
